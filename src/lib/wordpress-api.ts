@@ -180,22 +180,45 @@ export async function getPosts(
     
     // Verarbeite die Antwort, um sicherzustellen, dass die Bilder korrekt eingebettet sind
     const posts = postsData.map(post => {
-      // Wenn das Bild nicht in _embedded vorhanden ist, versuche es aus featured_image_url zu bekommen
-      if (!post._embedded?.['wp:featuredmedia']?.[0]?.source_url && post.featured_image_url) {
-        if (!post._embedded) {
-          post._embedded = {};
-        }
-        post._embedded['wp:featuredmedia'] = [
-          {
-            source_url: post.featured_image_url,
-            alt_text: post.title.rendered
+      // Stelle sicher, dass _embedded existiert
+      if (!post._embedded) {
+        post._embedded = {};
+      }
+
+      // Wenn featured_media vorhanden ist, aber wp:featuredmedia fehlt oder kein source_url hat
+      if (post.featured_media && (!post._embedded['wp:featuredmedia'] || !post._embedded['wp:featuredmedia'][0]?.source_url)) {
+        // Versuche zuerst, das Bild aus featured_image_url zu bekommen (vom Child-Theme hinzugefügt)
+        if (post.featured_image_url) {
+          post._embedded['wp:featuredmedia'] = [
+            {
+              source_url: post.featured_image_url,
+              alt_text: post.title.rendered
+            }
+          ];
+          console.log(`Post ${post.id} - Using featured_image_url:`, post.featured_image_url);
+        } 
+        // Wenn kein featured_image_url vorhanden ist, konstruiere die URL basierend auf der WordPress-API
+        else {
+          // Konstruiere eine URL zum Bild basierend auf der Media-ID
+          const mediaId = post.featured_media;
+          console.log(`Post ${post.id} - Constructing media URL for media ID:`, mediaId);
+          
+          // Stelle sicher, dass wp:featuredmedia existiert
+          if (!post._embedded['wp:featuredmedia']) {
+            post._embedded['wp:featuredmedia'] = [];
           }
-        ];
+          
+          // Füge einen Platzhalter hinzu, der später durch getMedia ersetzt werden kann
+          post._embedded['wp:featuredmedia'][0] = {
+            source_url: `${WORDPRESS_API_URL.replace('/wp/v2', '')}/wp-content/uploads/featured-${mediaId}.jpg`,
+            alt_text: post.title.rendered
+          };
+        }
       }
       
       // Debug-Ausgabe für Bilder
       console.log(`Post ${post.id} - ${post.title.rendered} - Featured Media:`, 
-                 post._embedded?.['wp:featuredmedia']?.[0]?.source_url || 'No image');
+                 post._embedded['wp:featuredmedia']?.[0]?.source_url || 'No image');
       
       return post;
     });
