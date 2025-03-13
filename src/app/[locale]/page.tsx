@@ -11,9 +11,9 @@ import { PostCard } from '@/components/post-card';
 import { AuthorWidget } from '@/components/author-widget';
 
 interface HomePageProps {
-  params: {
+  params: Promise<{
     locale: Locale;
-  };
+  }>;
 }
 
 export default async function HomePage({ params }: HomePageProps) {

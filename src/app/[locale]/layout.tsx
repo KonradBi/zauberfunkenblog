@@ -13,7 +13,7 @@ export default async function LocaleLayout({
   params,
 }: {
   children: ReactNode;
-  params: { locale: Locale };
+  params: Promise<{ locale: Locale }>;
 }) {
   // In Next.js 15, params is a Promise that needs to be awaited
   const { locale } = await params;
