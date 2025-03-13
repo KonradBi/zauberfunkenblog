@@ -4,19 +4,18 @@ This is a multilingual travel blog website built with [Next.js](https://nextjs.o
 
 ## WordPress API Configuration
 
-This website fetches content from a WordPress installation hosted on Strato at http://blog.zauberfunken.com. The WordPress site has JWT Authentication enabled, which requires credentials to access the API.
+This website fetches content from a WordPress installation hosted on Strato at http://blog.zauberfunken.com. The WordPress REST API is configured to allow public read access, which means no authentication is required to fetch published posts, categories, and media.
 
-### Setting up WordPress API Credentials
+### Environment Configuration
 
-1. Create a `.env.local` file in the root directory with the following variables:
+You can customize the WordPress API URL by setting an environment variable:
+
+1. Create a `.env.local` file in the root directory with the following variable:
    ```
-   WORDPRESS_USERNAME=your_wordpress_username
-   WORDPRESS_PASSWORD=your_wordpress_password
+   NEXT_PUBLIC_WORDPRESS_API_URL=your_wordpress_api_url
    ```
 
-2. For Vercel deployment, add these environment variables in the Vercel project settings.
-
-**Note:** The WordPress API credentials should have at least read access to posts, categories, and media.
+2. For Vercel deployment, add this environment variable in the Vercel project settings if you need to customize the WordPress endpoint.
 
 ## Site Structure
 
@@ -131,7 +130,6 @@ This project follows a headless CMS approach where WordPress serves as the conte
    - Install and activate the Zauberfunken Child Theme in the local WordPress installation
    - Install necessary WordPress plugins:
      - WP REST API - CORS (for cross-origin requests)
-     - JWT Authentication for WP REST API (optional for protected content)
      - ACF to REST API (if using Advanced Custom Fields)
      - WP REST Cache (for better API performance)
 
@@ -164,21 +162,21 @@ This project follows a headless CMS approach where WordPress serves as the conte
 
 ### Environment Configuration
 
-Create a `.env.local` file in your Next.js project root with the following variables:
+Create a `.env.local` file in your Next.js project root to customize the WordPress API URL:
 
 ```
-# Development (Local WordPress)
+# Use this for local development with a local WordPress installation
 NEXT_PUBLIC_WORDPRESS_API_URL=http://zauberfunkenblog.local/wp-json/wp/v2
 
-# Production (Strato WordPress)
-# NEXT_PUBLIC_WORDPRESS_API_URL=https://blog.zauberfunken.com/wp-json/wp/v2
+# For production, the default is already set to the Strato WordPress instance
+# NEXT_PUBLIC_WORDPRESS_API_URL=http://blog.zauberfunken.com/wp-json/wp/v2
 ```
 
-Then update your WordPress API utility to use this environment variable:
+The WordPress API utility is already configured to use this environment variable with a default fallback:
 
 ```typescript
 // In src/lib/wordpress-api.ts
-const WORDPRESS_API_URL = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://blog.zauberfunken.com/wp-json/wp/v2';
+const WORDPRESS_API_URL = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'http://blog.zauberfunken.com/wp-json/wp/v2';
 ```
 
 This setup allows for seamless switching between development and production environments.

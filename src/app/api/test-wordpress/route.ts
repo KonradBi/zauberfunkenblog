@@ -26,7 +26,7 @@ export async function GET() {
     
     return NextResponse.json({ 
       success: true,
-      apiInfo: connectionTest.data,
+      connectionStatus: 'Connected successfully to WordPress API',
       categories: categories,
       posts: posts
     });

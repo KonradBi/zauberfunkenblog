@@ -1,16 +1,11 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
 // WordPress API URL - Unterstützt Umgebungsvariablen für verschiedene Umgebungen
-// In .env.local kann NEXT_PUBLIC_WORDPRESS_API_URL definiert werden:
-// - Für lokale Entwicklung: http://zauberfunkenblog.local/wp-json/wp/v2
-// - Für Produktion: https://blog.zauberfunken.com/wp-json/wp/v2
-
 // Wir verwenden die Strato WordPress-Installation als Standard-URL.
-// Diese kann in einer .env.local Datei oder bei Vercel in den Umgebungsvariablen überschrieben werden.
 const WORDPRESS_API_URL = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'http://blog.zauberfunken.com/wp-json/wp/v2';
 const WORDPRESS_ROOT_URL = WORDPRESS_API_URL.replace('/wp/v2', '');
 
-// JWT Authentication credentials
+// JWT Authentication credentials (optional, nur für Fallback)
 const WP_USERNAME = process.env.WORDPRESS_USERNAME;
 const WP_PASSWORD = process.env.WORDPRESS_PASSWORD;
 
@@ -18,8 +13,7 @@ const WP_PASSWORD = process.env.WORDPRESS_PASSWORD;
 let jwtToken: string | null = null;
 
 /**
- * Get JWT token for authentication
- * This function should be called server-side only
+ * Get JWT token for authentication (optional, nur für Fallback)
  */
 async function getJwtToken(): Promise<string | null> {
   // If we already have a token, return it
@@ -29,7 +23,7 @@ async function getJwtToken(): Promise<string | null> {
   
   // If we don't have credentials, we can't get a token
   if (!WP_USERNAME || !WP_PASSWORD) {
-    console.error('WordPress credentials not provided. Set WORDPRESS_USERNAME and WORDPRESS_PASSWORD environment variables.');
+    console.log('WordPress credentials not provided. Only public API access will be used.');
     return null;
   }
   
@@ -52,17 +46,34 @@ async function getJwtToken(): Promise<string | null> {
 }
 
 /**
- * Create an authenticated axios instance
- * This function should be called server-side only
+ * Versucht, eine API-Anfrage zu machen, zuerst ohne Authentifizierung.
+ * Bei Bedarf wird als Fallback JWT-Authentifizierung verwendet, wenn 401/403 Fehler auftreten.
  */
-async function getAuthenticatedAxiosInstance() {
-  const token = await getJwtToken();
-  
-  return axios.create({
-    headers: token ? {
-      'Authorization': `Bearer ${token}`
-    } : {}
-  });
+async function makeApiRequest<T>(url: string): Promise<T> {
+  try {
+    // Erster Versuch ohne Authentifizierung
+    const response = await axios.get<T>(url);
+    return response.data;
+  } catch (error) {
+    // Wenn der Fehler 401 oder 403 ist, versuche es mit JWT-Authentifizierung
+    const axiosError = error as AxiosError;
+    if ((axiosError.response?.status === 401 || axiosError.response?.status === 403) && WP_USERNAME && WP_PASSWORD) {
+      console.log('Access denied without authentication, trying with JWT token...');
+      const token = await getJwtToken();
+      
+      if (token) {
+        const authResponse = await axios.get<T>(url, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        return authResponse.data;
+      }
+    }
+    
+    // Weitergabe des Fehlers, wenn keine Authentifizierung möglich ist oder ein anderer Fehler auftritt
+    throw error;
+  }
 }
 
 export interface WordPressPost {
@@ -163,13 +174,12 @@ export async function getPosts(
     
     console.log('Fetching posts from:', endpoint);
     
-    // Use authenticated axios instance
-    const axiosInstance = await getAuthenticatedAxiosInstance();
-    const response = await axiosInstance.get<WordPressPost[]>(endpoint);
-    console.log('Received posts:', response.data.length);
+    // API-Aufruf mit automatischem Fallback zur JWT-Authentifizierung bei Bedarf
+    const postsData = await makeApiRequest<WordPressPost[]>(endpoint);
+    console.log('Received posts:', postsData.length);
     
     // Verarbeite die Antwort, um sicherzustellen, dass die Bilder korrekt eingebettet sind
-    const posts = response.data.map(post => {
+    const posts = postsData.map(post => {
       // Wenn das Bild nicht in _embedded vorhanden ist, versuche es aus featured_image_url zu bekommen
       if (!post._embedded?.['wp:featuredmedia']?.[0]?.source_url && post.featured_image_url) {
         if (!post._embedded) {
@@ -205,13 +215,12 @@ export async function getPostBySlug(
     const endpoint = `${WORDPRESS_API_URL}/posts?_embed&slug=${slug}&lang=${lang}`;
     console.log('Fetching post by slug from:', endpoint);
     
-    // Use authenticated axios instance
-    const axiosInstance = await getAuthenticatedAxiosInstance();
-    const response = await axiosInstance.get<WordPressPost[]>(endpoint);
+    // API-Aufruf mit automatischem Fallback zur JWT-Authentifizierung bei Bedarf
+    const postsData = await makeApiRequest<WordPressPost[]>(endpoint);
     
-    if (response.data.length > 0) {
+    if (postsData.length > 0) {
       console.log('Found post with slug:', slug);
-      return response.data[0];
+      return postsData[0];
     }
     
     console.log('No post found with slug:', slug);
@@ -229,12 +238,11 @@ export async function getCategories(
     const endpoint = `${WORDPRESS_API_URL}/categories?lang=${lang}`;
     console.log('Fetching categories from:', endpoint);
     
-    // Use authenticated axios instance
-    const axiosInstance = await getAuthenticatedAxiosInstance();
-    const response = await axiosInstance.get<WordPressCategory[]>(endpoint);
-    console.log('Received categories:', response.data.length);
+    // API-Aufruf mit automatischem Fallback zur JWT-Authentifizierung bei Bedarf
+    const categoriesData = await makeApiRequest<WordPressCategory[]>(endpoint);
+    console.log('Received categories:', categoriesData.length);
     
-    return response.data;
+    return categoriesData;
   } catch (error) {
     console.error('Error fetching categories from WordPress:', error);
     return [];
@@ -247,10 +255,9 @@ export async function getMedia(
   try {
     const endpoint = `${WORDPRESS_API_URL}/media/${id}`;
     
-    // Use authenticated axios instance
-    const axiosInstance = await getAuthenticatedAxiosInstance();
-    const response = await axiosInstance.get<WordPressMedia>(endpoint);
-    return response.data;
+    // API-Aufruf mit automatischem Fallback zur JWT-Authentifizierung bei Bedarf
+    const mediaData = await makeApiRequest<WordPressMedia>(endpoint);
+    return mediaData;
   } catch (error) {
     console.error('Error fetching media from WordPress:', error);
     return null;
@@ -284,17 +291,16 @@ interface ApiConnectionResult {
 
 export async function testApiConnection(): Promise<ApiConnectionResult> {
   try {
-    // Wir verwenden den Root-Endpunkt der WordPress-API, der grundlegende Informationen zurückgibt
-    const rootEndpoint = WORDPRESS_API_URL.replace('/wp/v2', '');
-    console.log('Testing API connection to:', rootEndpoint);
+    // Wir testen mit dem /posts Endpunkt
+    const postsEndpoint = `${WORDPRESS_API_URL}/posts?per_page=1`;
+    console.log('Testing API connection to:', postsEndpoint);
     
-    // Use authenticated axios instance
-    const axiosInstance = await getAuthenticatedAxiosInstance();
-    const response = await axiosInstance.get(rootEndpoint);
-    console.log('API connection successful:', response.data);
+    // API-Aufruf mit automatischem Fallback zur JWT-Authentifizierung bei Bedarf
+    const postsData = await makeApiRequest<WordPressApiInfo>(postsEndpoint);
+    console.log('API connection successful:', postsData);
     return {
       success: true,
-      data: response.data
+      data: postsData
     };
   } catch (error) {
     console.error('Error connecting to WordPress API:', error);
@@ -317,16 +323,15 @@ export async function getPostsByCategorySlug(
     const categoryEndpoint = `${WORDPRESS_API_URL}/categories?slug=${slug}&lang=${lang}`;
     console.log('Fetching category by slug from:', categoryEndpoint);
     
-    // Use authenticated axios instance
-    const axiosInstance = await getAuthenticatedAxiosInstance();
-    const categoryResponse = await axiosInstance.get<WordPressCategory[]>(categoryEndpoint);
+    // API-Aufruf mit automatischem Fallback zur JWT-Authentifizierung bei Bedarf
+    const categoriesData = await makeApiRequest<WordPressCategory[]>(categoryEndpoint);
     
-    if (categoryResponse.data.length === 0) {
+    if (categoriesData.length === 0) {
       console.log('No category found with slug:', slug);
       return [];
     }
     
-    const categoryId = categoryResponse.data[0].id;
+    const categoryId = categoriesData[0].id;
     console.log('Found category ID:', categoryId, 'for slug:', slug);
     
     // Then get posts by category ID
