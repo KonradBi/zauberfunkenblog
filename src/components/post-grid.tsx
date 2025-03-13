@@ -42,6 +42,22 @@ export function PostGrid({ posts, locale, dictionary }: PostGridProps) {
                 alt={post._embedded?.['wp:featuredmedia']?.[0]?.alt_text || post.title.rendered}
                 fill
                 className="object-cover"
+                onError={(e) => {
+                  // Fallback: Versuche, das Bild direkt zu laden
+                  const imgElement = e.currentTarget as HTMLImageElement;
+                  if (post._embedded?.['wp:featuredmedia']?.[0]?.source_url) {
+                    imgElement.style.display = 'none'; // Verstecke das fehlerhafte Bild
+                    
+                    // Erstelle ein normales img-Element als Fallback
+                    const fallbackImg = document.createElement('img');
+                    fallbackImg.src = post._embedded?.['wp:featuredmedia']?.[0]?.source_url;
+                    fallbackImg.alt = post._embedded?.['wp:featuredmedia']?.[0]?.alt_text || post.title.rendered;
+                    fallbackImg.className = 'object-cover w-full h-full';
+                    
+                    // Füge das Fallback-Bild ein
+                    imgElement.parentNode?.appendChild(fallbackImg);
+                  }
+                }}
               />
             ) : (
               <div className="w-full h-full bg-muted flex items-center justify-center">
