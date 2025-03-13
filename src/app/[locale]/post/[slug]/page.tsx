@@ -71,7 +71,6 @@ export default async function PostPage({ params }: PostPageProps) {
             fill
             className="object-cover"
             priority
-            unoptimized={true} // Verwende das unoptimierte Bild direkt von WordPress
           />
         </div>
       )}
