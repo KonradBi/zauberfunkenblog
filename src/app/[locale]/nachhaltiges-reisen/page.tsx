@@ -12,9 +12,9 @@ import { FaGlobeEurope, FaBicycle, FaTrain } from 'react-icons/fa';
 import { MdLocalDining, MdHotel } from 'react-icons/md';
 
 interface SustainableTravelPageProps {
-  params: {
+  params: Promise<{
     locale: Locale;
-  };
+  }>;
 }
 
 export default function SustainableTravelPage({ params }: SustainableTravelPageProps) {
