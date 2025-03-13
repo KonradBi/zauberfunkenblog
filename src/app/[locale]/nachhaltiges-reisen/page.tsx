@@ -19,9 +19,9 @@ interface SustainableTravelPageProps {
 
 export default function SustainableTravelPage({ params }: SustainableTravelPageProps) {
   // In client components, we need to use React.use() to unwrap the params Promise
-  // TypeScript workaround for React.use with params
-  type ParamsType = { locale: Locale };
-  const unwrappedParams = React.use(params as unknown as Promise<ParamsType>);
+  // We need to cast params to a Promise to use React.use()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const unwrappedParams = React.use(params as any) as { locale: Locale };
   const locale = unwrappedParams.locale;
   const dictionary = getDictionary(locale);
   

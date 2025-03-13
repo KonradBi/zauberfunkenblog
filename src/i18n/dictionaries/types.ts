@@ -8,6 +8,7 @@ export interface Dictionary {
       podcast: string;
       sustainable: string;
       about: string;
+      switchLanguage: string;
     };
     readMore: string;
     latestPosts: string;

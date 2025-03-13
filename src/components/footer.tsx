@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { Locale } from '@/i18n/config';
+import { Dictionary } from '@/i18n/dictionaries/types';
 
 interface FooterProps {
-  dictionary: any;
+  dictionary: Dictionary;
   locale: Locale;
 }
 
@@ -17,7 +18,7 @@ export function Footer({ dictionary, locale }: FooterProps) {
             <span className="font-bold text-xl md:text-2xl tracking-wider font-playfair" style={{ fontWeight: 800 }}>ZAUBERFUNKEN</span>
           </Link>
           <p className="text-sm text-muted-foreground mt-1">
-            {dictionary.footer.copyright.replace('{year}', currentYear)}
+            {dictionary.footer.copyright.replace('{year}', currentYear.toString())}
           </p>
         </div>
         
