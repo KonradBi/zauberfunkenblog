@@ -166,7 +166,7 @@ export async function getPosts(
     if (category) {
       endpoint += typeof category === 'number' 
         ? `&categories=${category}` 
-        : `&categories_slug=${category}`;
+        : `&category_name=${category}`;
     }
     
     // Add language parameter for multilingual support (requires WPML or similar plugin)
