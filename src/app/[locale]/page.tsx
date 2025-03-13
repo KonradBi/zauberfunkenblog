@@ -91,7 +91,6 @@ export default async function HomePage({ params }: HomePageProps) {
                     className="object-cover transition-transform duration-500 hover:scale-105"
                     priority
                     sizes="(max-width: 1024px) 100vw, 60vw"
-                    unoptimized={true} // Verwende das Original-Bild von WordPress
                   />
                 ) : (
                   <div className="w-full h-full bg-muted flex items-center justify-center">
