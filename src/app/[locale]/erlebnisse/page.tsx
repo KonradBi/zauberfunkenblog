@@ -15,12 +15,13 @@ export default async function ExperiencesPage({ params }: ExperiencesPageProps) 
   const dictionary = await getDictionary(locale);
   
   // Fetch posts from the "Erlebnisse" category
-  const posts = await getPostsByCategorySlug('erlebnisse', 1, 12, locale);
+  // Fallback to empty array if category doesn't exist
+  const posts = await getPostsByCategorySlug('erlebnisse', 1, 12, locale) || [];
   
   return (
     <CategoryPage
-      title={dictionary.common.navigation.experiences}
-      subtitle={dictionary.common.latestPosts}
+      title={dictionary.common.navigation.experiences || "Erlebnisse"}
+      subtitle={dictionary.common.latestPosts || "Neueste Beiträge"}
       backgroundImage="https://images.unsplash.com/photo-1682687220742-aba19b51f11a?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3"
       posts={posts}
       locale={locale}
