@@ -1,0 +1,33 @@
+{
+  "common": {
+    "title": "ZAUBERFUNKEN – Special Travel Moments as a Family",
+    "navigation": {
+      "experiences": "Experiences",
+      "hotels": "Hotels",
+      "restaurants": "Restaurants",
+      "podcast": "Podcast",
+      "sustainable": "Sustainable Travel",
+      "about": "About Us"
+    },
+    "readMore": "Read More",
+    "latestPosts": "Latest Posts",
+    "allPosts": "All Posts",
+    "search": "Search",
+    "languageSwitch": "Zu Deutsch wechseln",
+    "noPosts": "No posts found",
+    "featuredPost": "Latest Highlight",
+    "exploreMore": "Discover our latest travel adventures"
+  },
+  "home": {
+    "hero": {
+      "title": "Special Travel Moments as a Family",
+      "subtitle": "Discover the most beautiful places for unforgettable family trips with us"
+    },
+    "featured": "Our Travel Tip"
+  },
+  "footer": {
+    "copyright": "© {year} ZAUBERFUNKEN. All rights reserved.",
+    "privacy": "Privacy Policy",
+    "imprint": "Imprint"
+  }
+}

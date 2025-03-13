@@ -1,0 +1,33 @@
+{
+  "common": {
+    "title": "ZAUBERFUNKEN – Besondere Reisemomente als Familie",
+    "navigation": {
+      "experiences": "Erlebnisse",
+      "hotels": "Hotels",
+      "restaurants": "Restaurants",
+      "podcast": "Podcast",
+      "sustainable": "Nachhaltiges Reisen",
+      "about": "Über uns"
+    },
+    "readMore": "Weiterlesen",
+    "latestPosts": "Neueste Beiträge",
+    "allPosts": "Alle Beiträge",
+    "search": "Suchen",
+    "languageSwitch": "Switch to English",
+    "noPosts": "Keine Beiträge gefunden",
+    "featuredPost": "Aktueller Beitrag",
+    "exploreMore": "Entdecke unsere neuesten Reiseberichte"
+  },
+  "home": {
+    "hero": {
+      "title": "Besondere Reisemomente als Familie",
+      "subtitle": "Entdecke mit uns die schönsten Orte für unvergessliche Familienreisen"
+    },
+    "featured": "Unser Reisetipp"
+  },
+  "footer": {
+    "copyright": "© {year} ZAUBERFUNKEN. Alle Rechte vorbehalten.",
+    "privacy": "Datenschutz",
+    "imprint": "Impressum"
+  }
+}
