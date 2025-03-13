@@ -32,7 +32,7 @@ export function PostCard({ post, locale, readMoreText }: PostCardProps) {
       onHoverEnd={() => setIsHovered(false)}
     >
       <Card className="overflow-hidden h-full flex flex-col bg-white border-none shadow-lg">
-        <div className="aspect-video relative overflow-hidden">
+        <div className="aspect-[16/9] relative overflow-hidden">
           {post._embedded?.['wp:featuredmedia']?.[0]?.source_url ? (
             <>
               <motion.div
@@ -77,7 +77,7 @@ export function PostCard({ post, locale, readMoreText }: PostCardProps) {
           )}
         </div>
         
-        <CardHeader className="pb-2">
+        <CardHeader className="pb-2 pt-4">
           <CardDescription className="text-xs">
             {new Date(post.date).toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-US', {
               year: 'numeric',
@@ -90,9 +90,9 @@ export function PostCard({ post, locale, readMoreText }: PostCardProps) {
           </CardTitle>
         </CardHeader>
         
-        <CardContent className="pb-4 flex-grow">
+        <CardContent className="pb-4 pt-0 flex-grow">
           <div 
-            className="line-clamp-3 text-sm text-gray-600"
+            className="line-clamp-2 text-sm text-gray-600"
             dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }}
           />
         </CardContent>
