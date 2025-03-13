@@ -2,6 +2,22 @@
 
 This is a multilingual travel blog website built with [Next.js](https://nextjs.org), [shadcn/ui](https://ui.shadcn.com/), and the WordPress API. The site is designed to showcase travel experiences, hotels, restaurants, podcasts, and sustainable travel content for families.
 
+## WordPress API Configuration
+
+This website fetches content from a WordPress installation hosted on Strato at http://blog.zauberfunken.com. The WordPress site has JWT Authentication enabled, which requires credentials to access the API.
+
+### Setting up WordPress API Credentials
+
+1. Create a `.env.local` file in the root directory with the following variables:
+   ```
+   WORDPRESS_USERNAME=your_wordpress_username
+   WORDPRESS_PASSWORD=your_wordpress_password
+   ```
+
+2. For Vercel deployment, add these environment variables in the Vercel project settings.
+
+**Note:** The WordPress API credentials should have at least read access to posts, categories, and media.
+
 ## Site Structure
 
 The website is organized into the following main sections:
