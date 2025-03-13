@@ -2,14 +2,13 @@
 const nextConfig = {
   images: {
     domains: [
-      'zauberfunkenblog.local', // Lokale WordPress-Installation
-      'blog.zauberfunken.com',  // Produktions-WordPress-Installation
+      'blog.zauberfunken.com',  // Strato WordPress-Installation
       'images.unsplash.com'     // Fallback-Bilder von Unsplash
     ],
     remotePatterns: [
       {
         protocol: 'http',
-        hostname: 'zauberfunkenblog.local',
+        hostname: 'blog.zauberfunken.com',
         pathname: '/wp-content/uploads/**',
       },
       {
