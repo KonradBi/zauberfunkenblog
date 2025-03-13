@@ -6,13 +6,15 @@ import { getPostBySlug } from '@/lib/wordpress-api';
 import { Button } from '@/components/ui/button';
 
 interface PostPageProps {
-  params: {
+  params: Promise<{
     locale: Locale;
     slug: string;
-  };
+  }>;
 }
 
-export default async function PostPage({ params: { locale, slug } }: PostPageProps) {
+export default async function PostPage({ params }: PostPageProps) {
+  // In Next.js 15, params is a Promise that needs to be awaited
+  const { locale, slug } = await params;
   const post = await getPostBySlug(slug, locale);
   
   if (!post) {

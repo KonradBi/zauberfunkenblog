@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { Locale } from '@/i18n/config';
 import { getDictionary } from '@/i18n/dictionaries';
 import { ParallaxHeader } from '@/components/parallax-header';
@@ -8,9 +9,9 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 
 interface PodcastPageProps {
-  params: {
+  params: Promise<{
     locale: Locale;
-  };
+  }>;
 }
 
 interface PodcastPreview {
@@ -19,7 +20,12 @@ interface PodcastPreview {
   image: string;
 }
 
-export default function PodcastPage({ params: { locale } }: PodcastPageProps) {
+export default function PodcastPage({ params }: PodcastPageProps) {
+  // In client components, we need to use React.use() to unwrap the params Promise
+  // We need to cast params to a Promise to use React.use()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const unwrappedParams = React.use(params as any) as { locale: Locale };
+  const locale = unwrappedParams.locale;
   const dictionary = getDictionary(locale);
 
   const upcomingEpisodes: PodcastPreview[] = [

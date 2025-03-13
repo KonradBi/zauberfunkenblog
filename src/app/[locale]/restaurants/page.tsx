@@ -4,12 +4,14 @@ import { getPostsByCategorySlug } from '@/lib/wordpress-api';
 import { CategoryPage } from '@/components/category-page';
 
 interface RestaurantsPageProps {
-  params: {
+  params: Promise<{
     locale: Locale;
-  };
+  }>;
 }
 
-export default async function RestaurantsPage({ params: { locale } }: RestaurantsPageProps) {
+export default async function RestaurantsPage({ params }: RestaurantsPageProps) {
+  // In Next.js 15, params is a Promise that needs to be awaited
+  const { locale } = await params;
   const dictionary = await getDictionary(locale);
   
   // Fetch posts from the "Restaurants" category

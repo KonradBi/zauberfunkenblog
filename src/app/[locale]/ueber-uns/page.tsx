@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { Locale } from '@/i18n/config';
 import { getDictionary } from '@/i18n/dictionaries';
 import Image from 'next/image';
@@ -8,12 +9,17 @@ import { motion } from 'framer-motion';
 import { LuHeart } from 'react-icons/lu';
 
 interface AboutUsPageProps {
-  params: {
+  params: Promise<{
     locale: Locale;
-  };
+  }>;
 }
 
-export default function AboutUsPage({ params: { locale } }: AboutUsPageProps) {
+export default function AboutUsPage({ params }: AboutUsPageProps) {
+  // In client components, we need to use React.use() to unwrap the params Promise
+  // We need to cast params to a Promise to use React.use()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const unwrappedParams = React.use(params as any) as { locale: Locale };
+  const locale = unwrappedParams.locale;
   const dictionary = getDictionary(locale);
 
   const placeholderText = {
