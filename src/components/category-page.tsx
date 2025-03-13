@@ -3,22 +3,25 @@ import { WordPressPost } from '@/lib/wordpress-api';
 import { ParallaxHeader } from './parallax-header';
 import { PostCard } from './post-card';
 import { motion } from 'framer-motion';
+import { Locale } from '@/i18n/config';
 
 interface CategoryPageProps {
   title: string;
   subtitle: string;
   backgroundImage: string;
-  posts: WordPressPost[];
-  locale: string;
+  posts: WordPressPost[] | null | undefined;
+  locale: Locale;
 }
 
 export function CategoryPage({ 
   title, 
   subtitle, 
   backgroundImage, 
-  posts,
+  posts: postsInput,
   locale 
 }: CategoryPageProps) {
+  // Ensure posts is always an array
+  const posts = postsInput || [];
   return (
     <div className="flex flex-col min-h-screen">
       <ParallaxHeader
@@ -31,7 +34,12 @@ export function CategoryPage({
       <main className="container mx-auto px-4 py-16 -mt-12 relative z-10">
         <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-xl p-8 mb-12">
           <h2 className="text-3xl font-bold mb-2">{title}</h2>
-          <p className="text-gray-600 mb-6 text-lg">Entdecken Sie unsere Sammlung von Artikeln über {title}</p>
+          <p className="text-gray-600 mb-6 text-lg">
+            {locale === 'de' 
+              ? `Entdecken Sie unsere Sammlung von Artikeln über ${title}` 
+              : `Discover our collection of articles about ${title}`
+            }
+          </p>
           <div className="h-1 w-20 bg-primary mb-8"></div>
         </div>
         
@@ -46,7 +54,7 @@ export function CategoryPage({
               <PostCard
                 post={post}
                 locale={locale}
-                readMoreText="Weiterlesen"
+                readMoreText={locale === 'de' ? "Weiterlesen" : "Read more"}
               />
             </motion.div>
           ))}
@@ -60,10 +68,13 @@ export function CategoryPage({
             transition={{ duration: 0.5 }}
           >
             <h2 className="text-2xl font-semibold">
-              Keine Beiträge gefunden
+              {locale === 'de' ? 'Keine Beiträge gefunden' : 'No posts found'}
             </h2>
             <p className="text-gray-600 mt-2">
-              Schau später noch einmal vorbei für neue Inhalte.
+              {locale === 'de' 
+                ? 'Schau später noch einmal vorbei für neue Inhalte.' 
+                : 'Check back later for new content.'
+              }
             </p>
           </motion.div>
         )}

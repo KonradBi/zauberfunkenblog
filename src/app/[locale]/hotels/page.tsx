@@ -15,12 +15,13 @@ export default async function HotelsPage({ params }: HotelsPageProps) {
   const dictionary = await getDictionary(locale);
   
   // Fetch posts from the "Hotels" category
-  const posts = await getPostsByCategorySlug('hotels', 1, 12, locale);
+  // Fallback to empty array if category doesn't exist
+  const posts = await getPostsByCategorySlug('hotels', 1, 12, locale) || [];
   
   return (
     <CategoryPage
-      title={dictionary.common.navigation.hotels}
-      subtitle={dictionary.common.latestPosts}
+      title={dictionary.common.navigation.hotels || "Hotels"}
+      subtitle={dictionary.common.latestPosts || "Neueste Beiträge"}
       backgroundImage="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=3540&q=80"
       posts={posts}
       locale={locale}
