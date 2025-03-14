@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { WordPressPost } from '@/lib/wordpress-api';
 import { motion } from 'framer-motion';
