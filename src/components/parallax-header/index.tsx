@@ -10,12 +10,12 @@ interface ParallaxHeaderProps {
   backgroundImage: string;
 }
 
-export const ParallaxHeader: React.FC<ParallaxHeaderProps> = ({
+export function ParallaxHeader({ 
   title,
   subtitle,
   buttons,
   backgroundImage,
-}) => {
+}: ParallaxHeaderProps) {
   const [offset, setOffset] = useState(0);
   const headerRef = useRef<HTMLDivElement>(null);
 
@@ -37,8 +37,7 @@ export const ParallaxHeader: React.FC<ParallaxHeaderProps> = ({
   }, []);
 
   return (
-    <>
-      <div ref={headerRef} className="relative w-full h-[80vh] overflow-hidden">
+    <div ref={headerRef} className="relative w-full h-[80vh] overflow-hidden">
       {/* Background image with parallax effect */}
       <div 
         className="absolute inset-0 w-full h-[calc(100%+200px)] bg-cover bg-center animate-fade-in"
@@ -78,6 +77,5 @@ export const ParallaxHeader: React.FC<ParallaxHeaderProps> = ({
       {/* Decorative elements */}
       <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-white to-transparent"></div>
     </div>
-    </>
   );
-};
+}
