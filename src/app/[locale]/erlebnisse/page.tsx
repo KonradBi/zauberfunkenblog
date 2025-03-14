@@ -1,7 +1,7 @@
 import { Locale } from '@/i18n/config';
 import { getDictionary } from '@/i18n/dictionaries';
 import { getPostsByCategorySlug } from '@/lib/wordpress-api';
-import { CategoryPage } from '@/components/category-page';
+import { StyledCategoryPage } from '@/components/styled-category-page';
 
 interface ExperiencesPageProps {
   params: Promise<{
@@ -19,7 +19,7 @@ export default async function ExperiencesPage({ params }: ExperiencesPageProps) 
   const posts = await getPostsByCategorySlug('erlebnisse', 1, 12, locale) || [];
   
   return (
-    <CategoryPage
+    <StyledCategoryPage
       title={dictionary.common.navigation.experiences || "Erlebnisse"}
       subtitle={dictionary.common.latestPosts || "Neueste Beiträge"}
       backgroundImage="https://images.unsplash.com/photo-1682687220742-aba19b51f11a?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3"

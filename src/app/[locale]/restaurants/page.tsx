@@ -1,7 +1,7 @@
 import { Locale } from '@/i18n/config';
 import { getDictionary } from '@/i18n/dictionaries';
 import { getPostsByCategorySlug } from '@/lib/wordpress-api';
-import { CategoryPage } from '@/components/category-page';
+import { StyledCategoryPage } from '@/components/styled-category-page';
 
 interface RestaurantsPageProps {
   params: Promise<{
@@ -19,7 +19,7 @@ export default async function RestaurantsPage({ params }: RestaurantsPageProps) 
   const posts = await getPostsByCategorySlug('restaurants', 1, 12, locale) || [];
   
   return (
-    <CategoryPage
+    <StyledCategoryPage
       title={dictionary.common.navigation.restaurants || "Restaurants"}
       subtitle={dictionary.common.latestPosts || "Neueste Beiträge"}
       backgroundImage="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=3540&q=80"
