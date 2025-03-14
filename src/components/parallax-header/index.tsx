@@ -81,7 +81,3 @@ export const ParallaxHeader: React.FC<ParallaxHeaderProps> = ({
     </>
   );
 };
-
-
-
-export default ParallaxHeader;
