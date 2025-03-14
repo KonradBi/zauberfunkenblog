@@ -1,7 +1,7 @@
 import { Locale } from '@/i18n/config';
 import { getDictionary } from '@/i18n/dictionaries';
 import { getPostsByCategorySlug } from '@/lib/wordpress-api';
-import { StyledCategoryPage } from '@/components/styled-category-page';
+import { CategoryPage } from '@/components/category-page';
 
 interface ExperiencesPageProps {
   params: Promise<{
@@ -16,10 +16,19 @@ export default async function ExperiencesPage({ params }: ExperiencesPageProps) 
   
   // Fetch posts from the "Erlebnisse" category
   // Fallback to empty array if category doesn't exist
-  const posts = await getPostsByCategorySlug('erlebnisse', 1, 12, locale) || [];
+  // Erhöhe die Anzahl der abgerufenen Beiträge auf 50, um sicherzustellen, dass alle angezeigt werden
+  const posts = await getPostsByCategorySlug('erlebnisse', 1, 50, locale) || [];
+  
+  // Debug-Log, um zu sehen, wie viele Beiträge abgerufen wurden
+  console.log(`Retrieved ${posts.length} experience posts for locale ${locale}`);
+  
+  // Debug-Log, um die IDs und Titel der abgerufenen Beiträge zu sehen
+  posts.forEach(post => {
+    console.log(`Post ID: ${post.id}, Title: ${post.title.rendered}`);
+  });
   
   return (
-    <StyledCategoryPage
+    <CategoryPage
       title={dictionary.common.navigation.experiences || "Erlebnisse"}
       subtitle={dictionary.common.latestPosts || "Neueste Beiträge"}
       backgroundImage="https://images.unsplash.com/photo-1682687220742-aba19b51f11a?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3"
