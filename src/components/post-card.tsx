@@ -25,14 +25,20 @@ export function PostCard({ post, locale, readMoreText }: PostCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       whileHover={{ 
-        y: -5,
+        y: -8,
+        scale: 1.02,
         transition: { duration: 0.2 }
       }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
     >
-      <Card className="overflow-hidden h-full flex flex-col bg-white border-none shadow-lg">
-        <div className="aspect-[16/9] relative overflow-hidden">
+      <Card className="overflow-hidden h-full flex flex-col bg-white border-none rounded-lg transition-all duration-300" style={{
+        background: "linear-gradient(to bottom, #ffffff, #f9f9f9)",
+        boxShadow: isHovered 
+            ? '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' 
+            : '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+      }}>
+        <div className="aspect-[16/9] relative overflow-hidden rounded-t-lg">
           {post._embedded?.['wp:featuredmedia']?.[0]?.source_url ? (
             <>
               <motion.div
@@ -77,7 +83,7 @@ export function PostCard({ post, locale, readMoreText }: PostCardProps) {
           )}
         </div>
         
-        <CardHeader className="pb-2 pt-4">
+        <CardHeader className="pb-2 pt-2">
           <CardDescription className="text-xs">
             {new Date(post.date).toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-US', {
               year: 'numeric',
@@ -98,7 +104,7 @@ export function PostCard({ post, locale, readMoreText }: PostCardProps) {
         </CardContent>
         
         <CardFooter className="pt-0">
-          <Button asChild variant="outline" className="w-full">
+          <Button asChild variant="outline" className="w-full hover:bg-primary hover:text-white transition-all duration-300">
             <Link href={`/${locale}/post/${post.slug}`}>
               {readMoreText}
             </Link>
