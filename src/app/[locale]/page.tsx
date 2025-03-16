@@ -5,13 +5,10 @@ import Link from 'next/link';
 import { Locale } from '@/i18n/config';
 import { getDictionary } from '@/i18n/dictionaries';
 import { getPosts, WordPressPost } from '@/lib/wordpress-api';
-// Card-Komponenten werden jetzt in der PostCard-Komponente verwendet
 import { Button } from '@/components/ui/button';
 import { ParallaxHeader } from '@/components/parallax-header';
 import { ParallaxQuote } from '@/components/parallax-quote';
-import { PostCard } from '@/components/post-card';
 import { AuthorWidget } from '@/components/author-widget';
-import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { MotionCard } from '@/components/motion-wrapper';
 import { use } from 'react';
