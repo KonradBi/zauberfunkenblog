@@ -1,5 +1,3 @@
-'use client';
-
 import Image from 'next/image';
 import Link from 'next/link';
 import { Locale } from '@/i18n/config';
@@ -9,36 +7,9 @@ import { Button } from '@/components/ui/button';
 import { ParallaxHeader } from '@/components/parallax-header';
 import { ParallaxQuote } from '@/components/parallax-quote';
 import { AuthorWidget } from '@/components/author-widget';
-import { useState, useEffect } from 'react';
 import { MotionCard } from '@/components/motion-wrapper';
-import { use } from 'react';
 
-interface Dictionary {
-  home: {
-    hero: {
-      title: string;
-      subtitle: string;
-    };
-    featured: string;
-  };
-  common: {
-    navigation: {
-      experiences: string;
-      sustainable: string;
-      hotels: string;
-      restaurants: string;
-      podcast: string;
-    };
-    featuredPost: string;
-    readMore: string;
-    latestPosts: string;
-    exploreMore: string;
-    noPosts: string;
-    allPosts: string;
-  };
-}
-
-// Funktion, die basierend auf der Kategorie ein passendes Icon zurückgibt
+// Function to get the appropriate icon based on the category
 const getCategoryIcon = (category: string) => {
   const lowerCategory = category.toLowerCase();
   
@@ -67,7 +38,7 @@ const getCategoryIcon = (category: string) => {
       </svg>
     );
   } else {
-    // Standard-Icon für alle anderen Kategorien
+    // Default icon for all other categories
     return (
       <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
