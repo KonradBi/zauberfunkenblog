@@ -1,5 +1,3 @@
-'use client';
-
 import Image from 'next/image';
 import Link from 'next/link';
 import { Locale } from '@/i18n/config';
@@ -9,9 +7,10 @@ import { Button } from '@/components/ui/button';
 import { ParallaxHeader } from '@/components/parallax-header';
 import { ParallaxQuote } from '@/components/parallax-quote';
 import { AuthorWidget } from '@/components/author-widget';
-import { useState, useEffect } from 'react';
-import { MotionCard } from '@/components/motion-wrapper';
-import { use } from 'react';
+
+// Client-Komponenten-Wrapper für Motion-Elemente
+import PostsGrid from '@/components/posts-grid';
+import FeaturedPost from '@/components/featured-post';
 
 interface Dictionary {
   home: {
@@ -82,169 +81,79 @@ interface HomePageProps {
   }>;
 }
 
-export default function HomePage({ params }: HomePageProps) {
-  // Unwrap the params Promise using React.use()
-  const { locale } = use(params);
-  const [dictionary, setDictionary] = useState<Dictionary>({
-    home: { hero: { title: '', subtitle: '' }, featured: '' },
-    common: { 
-      navigation: { experiences: '', sustainable: '', hotels: '', restaurants: '', podcast: '' },
-      featuredPost: '',
-      readMore: '',
-      latestPosts: '',
-      exploreMore: '',
-      noPosts: '',
-      allPosts: ''
-    }
-  });
+export default async function HomePage({ params }: HomePageProps) {
+  // Unwrap the params Promise using await
+  const { locale } = await params;
   
-  // State for posts
-  const [posts, setPosts] = useState<WordPressPost[]>([]);
-  const [featuredPost, setFeaturedPost] = useState<WordPressPost | null>(null);
-  const [regularPosts, setRegularPosts] = useState<WordPressPost[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Fetch data server-side
+  const dictionary = await getDictionary(locale);
   
-  useEffect(() => {
-    async function loadData() {
-      try {
-        // Load dictionary
-        const dict = await getDictionary(locale);
-        setDictionary(dict);
-        
-        // Fetch posts
-        const response = await getPosts(undefined, 1, 6, locale);
-        const fetchedPosts = Array.isArray(response) ? response : [];
-        setPosts(fetchedPosts);
-        
-        // Extract featured post
-        if (fetchedPosts.length > 0) {
-          setFeaturedPost(fetchedPosts[0]);
-          setRegularPosts(fetchedPosts.slice(1));
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    
-    loadData();
-  }, [locale]);
+  // Fetch posts from the WordPress API
+  const fetchedPosts = await getPosts(undefined, 1, 6, locale);
+  const posts = Array.isArray(fetchedPosts) ? fetchedPosts : [];
   
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  // Extract featured post and regular posts
+  const featuredPost = posts.length > 0 ? posts[0] : null;
+  const regularPosts = posts.length > 0 ? posts.slice(1) : [];
   
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50">
-      {/* Hero Section with Parallax Effect */}
       <ParallaxHeader
-        title={dictionary.home.hero.title || "Unvergessliche Reiseerlebnisse entdecken"}
-        subtitle={dictionary.home.hero.subtitle || "Authentische Abenteuer und einzigartige Momente, die deine Reise zum Erlebnis machen"}
-        backgroundImage="/images/boats-2835848_1920.jpg"
+        title={dictionary.home.hero.title}
+        subtitle={dictionary.home.hero.subtitle}
         buttons={
-          <div className="flex flex-row justify-center gap-4">
-            <Button 
-              asChild
-              className="bg-white/90 hover:bg-white text-primary px-6 py-3 rounded-lg text-base transition-all transform hover:scale-105 hover:translate-y-[-2px] font-medium shadow-lg hover:shadow-xl backdrop-blur-sm border border-white/20"
-            >
-              <Link href={`/${locale}/erlebnisse`}>
-                <span className="flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                  </svg>
-                  {dictionary.common.navigation.experiences}
-                </span>
+          <div className="flex flex-col gap-4 mt-8">
+            <Button asChild variant="default" className="px-6 py-6 text-lg bg-white/90 backdrop-blur-sm hover:bg-white text-primary border-0 shadow-lg hover:shadow-xl transition-all duration-300 font-medium rounded-xl group">
+              <Link href={`/${locale}/erlebnisse`} className="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary group-hover:animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                </svg>
+                {dictionary.common.navigation.experiences}
               </Link>
             </Button>
-            <Button 
-              variant="outline" 
-              asChild
-              className="bg-transparent hover:bg-white/20 text-white border-white/40 hover:border-white px-6 py-3 rounded-lg text-base transition-all transform hover:scale-105 hover:translate-y-[-2px] font-medium shadow-lg hover:shadow-xl backdrop-blur-sm"
-            >
-              <Link href={`/${locale}/nachhaltiges-reisen`}>
-                <span className="flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  {dictionary.common.navigation.sustainable}
-                </span>
+            <Button asChild variant="outline" className="px-6 py-6 text-lg bg-transparent hover:bg-white/90 text-white hover:text-primary border border-white/30 hover:border-white/90 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 font-medium rounded-xl group">
+              <Link href={`/${locale}/nachhaltig`} className="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 group-hover:animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {dictionary.common.navigation.sustainable}
               </Link>
             </Button>
           </div>
         }
+        backgroundImage="/images/hero1.jpg"
       />
       
-      {/* Featured Post Section */}
-      {featuredPost && (
-        <section className="w-full py-16 md:py-20 bg-gradient-to-r from-primary/10 to-secondary/10 backdrop-blur-sm">
-          <div className="container px-4 md:px-6 max-w-6xl mx-auto">
-            <div className="flex flex-col items-start justify-center mb-10">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-primary-900">
-                  {dictionary.home.featured}
-                </h2>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 items-stretch bg-white rounded-xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:translate-y-[-5px]" style={{
-              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.05)',
-              transform: 'perspective(1000px) rotateX(0deg)'
-            }}>
-              <div className="lg:col-span-7 relative overflow-hidden h-full min-h-[300px]">
-                {featuredPost._embedded?.['wp:featuredmedia']?.[0]?.source_url ? (
-                  <Image
-                    src={featuredPost._embedded?.['wp:featuredmedia']?.[0]?.source_url}
-                    alt={featuredPost._embedded?.['wp:featuredmedia']?.[0]?.alt_text || featuredPost.title.rendered}
-                    fill
-                    className="object-cover object-center transition-transform duration-700 hover:scale-110"
-                    priority
-                    sizes="(max-width: 1024px) 100vw, 60vw"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-muted flex items-center justify-center">
-                    <span className="text-muted-foreground">Kein Bild verfügbar</span>
-                  </div>
-                )}
-              </div>
-              
-              <div className="lg:col-span-5 flex flex-col justify-between space-y-5 p-6 lg:p-8 bg-gradient-to-b from-white to-gray-50 h-full">
-                <div className="space-y-5">
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white/90 backdrop-blur-sm text-primary border border-primary/10 shadow-sm transition-all duration-300 hover:bg-white hover:shadow-md hover:scale-105">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                    </svg>
-                    {dictionary.common.featuredPost}
-                  </div>
-                  <h3 className="text-2xl font-bold tracking-tight lg:text-3xl text-primary-900">
-                    <span dangerouslySetInnerHTML={{ __html: featuredPost.title.rendered }} />
-                  </h3>
-                  <p className="text-muted-foreground text-sm">
-                    {new Date(featuredPost.date).toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </p>
-                  <div 
-                    className="text-base text-gray-700 prose prose-sm max-w-none"
-                    dangerouslySetInnerHTML={{ __html: featuredPost.excerpt.rendered }}
-                  />
-                </div>
-                <Button className="w-fit mt-6 hover:bg-primary hover:translate-y-[-2px] transition-all duration-300 shadow-md hover:shadow-lg" size="lg" asChild>
-                  <Link href={`/${locale}/post/${featuredPost.slug}`}>
-                    {dictionary.common.readMore}
-                  </Link>
-                </Button>
-              </div>
-            </div>
+      <main className="container mx-auto px-4 py-12 -mt-20 relative z-10">
+        <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-xl p-6 md:p-8">
+          <div className="space-y-2 mb-8">
+            <h2 className="text-3xl font-bold tracking-tight">{dictionary.home.featured}</h2>
+            <div className="h-1 w-24 bg-primary"></div>
           </div>
-        </section>
-      )}
+          
+          {/* Featured Post Component */}
+          <FeaturedPost
+            post={featuredPost}
+            locale={locale}
+            dictionary={{
+              featuredPost: dictionary.common.featuredPost,
+              readMore: dictionary.common.readMore
+            }}
+          />
+          
+          {/* Regular Posts Grid Component */}
+          <PostsGrid
+            posts={posts}
+            locale={locale}
+            dictionary={{
+              readMore: dictionary.common.readMore,
+              latestPosts: dictionary.common.latestPosts,
+              noPosts: dictionary.common.noPosts,
+              allPosts: dictionary.common.allPosts
+            }}
+          />
+        </div>
+      </main>
       
       {/* Inspirational Quote with Parallax Effect */}
       <ParallaxQuote 
@@ -256,92 +165,6 @@ export default function HomePage({ params }: HomePageProps) {
         locale={locale}
       />
       
-      {/* Regular Posts Section */}
-      <section className="w-full py-16 md:py-24 bg-white/80 backdrop-blur-sm">
-        <div className="container px-4 md:px-6 max-w-6xl mx-auto">
-          <div className="flex flex-col items-start justify-center mb-10">
-            <div className="space-y-2">
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-primary-900">
-                {dictionary.common.latestPosts}
-              </h2>
-              <p className="max-w-[700px] text-muted-foreground md:text-xl">
-                {dictionary.common.exploreMore}
-              </p>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-            {regularPosts.length > 0 ? regularPosts.slice(0, 4).map((post, index) => (
-              <MotionCard key={post.id} index={index}>
-                <div className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 h-full flex flex-col transform hover:translate-y-[-5px]" style={{
-                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03)',
-                }}>
-                  <div className="relative aspect-[16/9] overflow-hidden">
-                    {post._embedded?.['wp:featuredmedia']?.[0]?.source_url ? (
-                      <Image
-                        src={post._embedded?.['wp:featuredmedia']?.[0]?.source_url}
-                        alt={post._embedded?.['wp:featuredmedia']?.[0]?.alt_text || post.title.rendered}
-                        fill
-                        className="object-cover transition-transform duration-500 hover:scale-110"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-muted flex items-center justify-center">
-                        <span className="text-muted-foreground">Kein Bild verfügbar</span>
-                      </div>
-                    )}
-                    
-                    {/* Kategorie-Badge */}
-                    {post._embedded?.['wp:term']?.[0]?.[0]?.name && (
-                      <div className="absolute top-4 left-4 z-10">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white/80 backdrop-blur-sm text-primary border border-primary/10 shadow-sm transition-all duration-300 hover:bg-white hover:shadow-md hover:scale-105">
-                          {getCategoryIcon(post._embedded?.['wp:term']?.[0]?.[0]?.name)}
-                          {post._embedded?.['wp:term']?.[0]?.[0]?.name}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="p-6 flex flex-col flex-grow bg-gradient-to-b from-white to-gray-50">
-                    <p className="text-xs text-muted-foreground mb-2">
-                      {new Date(post.date).toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })}
-                    </p>
-                    <h3 className="text-xl font-bold mb-3 line-clamp-2 text-primary-900">
-                      <span dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
-                    </h3>
-                    <div 
-                      className="text-sm text-gray-600 line-clamp-2 mb-4 flex-grow"
-                      dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }}
-                    />
-                    <Button asChild variant="outline" className="w-fit mt-auto hover:bg-primary hover:text-white transition-all duration-300 shadow-sm hover:shadow-md">
-                      <Link href={`/${locale}/post/${post.slug}`}>
-                        {dictionary.common.readMore}
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              </MotionCard>
-            )) : posts.length === 0 ? (
-              <div className="col-span-2 text-center py-10">
-                <p className="text-muted-foreground">{dictionary.common.noPosts || 'Keine Beiträge gefunden'}</p>
-              </div>
-            ) : null}
-          </div>
-          
-          <div className="flex justify-center mt-12">
-            <Button variant="outline" asChild className="hover:bg-primary hover:text-white transition-all duration-300 shadow-md hover:shadow-lg">
-              <Link href={`/${locale}/erlebnisse`}>
-                {dictionary.common.allPosts}
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-
       {/* Reisekategorien mit verbessertem Parallax-Effekt */}
       <section className="relative py-24 overflow-hidden">
         {/* Parallax-Hintergrund mit mehreren Ebenen für einen 3D-Effekt */}
