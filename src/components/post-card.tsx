@@ -3,10 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-
 import { WordPressPost } from '@/lib/wordpress-api';
 
 // Funktion, die basierend auf der Kategorie ein passendes Icon zurückgibt
@@ -50,16 +47,14 @@ const getCategoryIcon = (category: string) => {
 interface PostCardProps {
   post: WordPressPost;
   locale: string;
-  readMoreText: string;
+  dictionary: {
+    readMore: string;
+  };
 }
 
-export function PostCard({ post, locale, readMoreText }: PostCardProps) {
-  const [isHovered, setIsHovered] = useState(false);
-
+export function PostCard({ post, locale, dictionary }: PostCardProps) {
   return (
-    <div className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 h-full flex flex-col transform hover:translate-y-[-5px]" style={{
-      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03)',
-    }}>
+    <div className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 h-full flex flex-col transform hover:translate-y-[-5px]">
       <div className="relative aspect-[16/9] overflow-hidden">
         {post._embedded?.['wp:featuredmedia']?.[0]?.source_url ? (
           <Image
@@ -103,7 +98,7 @@ export function PostCard({ post, locale, readMoreText }: PostCardProps) {
         />
         <Button asChild variant="outline" className="w-fit mt-auto hover:bg-primary hover:text-white transition-all duration-300 shadow-sm hover:shadow-md">
           <Link href={`/${locale}/post/${post.slug}`}>
-            {readMoreText}
+            {dictionary.readMore}
           </Link>
         </Button>
       </div>

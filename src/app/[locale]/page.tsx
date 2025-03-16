@@ -16,6 +16,31 @@ import { useState, useEffect } from 'react';
 import { MotionCard } from '@/components/motion-wrapper';
 import { use } from 'react';
 
+interface Dictionary {
+  home: {
+    hero: {
+      title: string;
+      subtitle: string;
+    };
+    featured: string;
+  };
+  common: {
+    navigation: {
+      experiences: string;
+      sustainable: string;
+      hotels: string;
+      restaurants: string;
+      podcast: string;
+    };
+    featuredPost: string;
+    readMore: string;
+    latestPosts: string;
+    exploreMore: string;
+    noPosts: string;
+    allPosts: string;
+  };
+}
+
 // Funktion, die basierend auf der Kategorie ein passendes Icon zurückgibt
 const getCategoryIcon = (category: string) => {
   const lowerCategory = category.toLowerCase();
@@ -63,7 +88,7 @@ interface HomePageProps {
 export default function HomePage({ params }: HomePageProps) {
   // Unwrap the params Promise using React.use()
   const { locale } = use(params);
-  const [dictionary, setDictionary] = useState<any>({
+  const [dictionary, setDictionary] = useState<Dictionary>({
     home: { hero: { title: '', subtitle: '' }, featured: '' },
     common: { 
       navigation: { experiences: '', sustainable: '', hotels: '', restaurants: '', podcast: '' },
