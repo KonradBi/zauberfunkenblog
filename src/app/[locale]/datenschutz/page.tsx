@@ -10,7 +10,7 @@ interface DatenschutzPageProps {
 export default async function DatenschutzPage({ params }: DatenschutzPageProps) {
   // Unwrap the params Promise
   const { locale } = await params;
-  const dictionary = await getDictionary(locale);
+  await getDictionary(locale);
   
   // Get current date for the "Stand" (Last updated) field
   const currentDate = new Date();
@@ -121,12 +121,12 @@ export default async function DatenschutzPage({ params }: DatenschutzPageProps) 
               Wenn Sie den auf der Website angebotenen Newsletter beziehen möchten, benötigen wir von Ihnen eine E-Mail-Adresse sowie Informationen, welche uns die Überprüfung gestatten, dass Sie der Inhaber der angegebenen E-Mail-Adresse sind und mit dem Empfang des Newsletters einverstanden sind. Weitere Daten werden nicht erhoben. Diese Daten verwenden wir ausschließlich für den Versand der angeforderten Informationen und geben sie nicht an Dritte weiter.
             </p>
             <p>
-              Die Verarbeitung der in das Newsletter-Anmeldeformular eingegebenen Daten erfolgt ausschließlich auf Grundlage Ihrer Einwilligung (Art. 6 Abs. 1 lit. a DSGVO). Die erteilte Einwilligung zur Speicherung der Daten, der E-Mail-Adresse sowie deren Nutzung zum Versand des Newsletters können Sie jederzeit widerrufen, etwa über den "Austragen"-Link im Newsletter.
+              Die Verarbeitung der in das Newsletter-Anmeldeformular eingegebenen Daten erfolgt ausschließlich auf Grundlage Ihrer Einwilligung (Art. 6 Abs. 1 lit. a DSGVO). Die erteilte Einwilligung zur Speicherung der Daten, der E-Mail-Adresse sowie deren Nutzung zum Versand des Newsletters können Sie jederzeit widerrufen, etwa über den &quot;Austragen&quot;-Link im Newsletter.
             </p>
             
             <h3 className="text-xl font-semibold mt-6 mb-3">SSL- bzw. TLS-Verschlüsselung</h3>
             <p>
-              Diese Seite nutzt aus Sicherheitsgründen und zum Schutz der Übertragung vertraulicher Inhalte eine SSL- bzw. TLS-Verschlüsselung. Eine verschlüsselte Verbindung erkennen Sie daran, dass die Adresszeile des Browsers von "http://" auf "https://" wechselt und an dem Schloss-Symbol in Ihrer Browserzeile.
+              Diese Seite nutzt aus Sicherheitsgründen und zum Schutz der Übertragung vertraulicher Inhalte eine SSL- bzw. TLS-Verschlüsselung. Eine verschlüsselte Verbindung erkennen Sie daran, dass die Adresszeile des Browsers von &quot;http://&quot; auf &quot;https://&quot; wechselt und an dem Schloss-Symbol in Ihrer Browserzeile.
             </p>
             
             <h3 className="text-xl font-semibold mt-6 mb-3">Recht auf Auskunft, Löschung, Sperrung</h3>
@@ -239,12 +239,12 @@ export default async function DatenschutzPage({ params }: DatenschutzPageProps) 
               If you would like to receive the newsletter offered on the website, we require an email address from you as well as information that allows us to verify that you are the owner of the specified email address and agree to receive the newsletter. No additional data is collected. We use this data exclusively for sending the requested information and do not pass it on to third parties.
             </p>
             <p>
-              The processing of the data entered in the newsletter registration form is based exclusively on your consent (Art. 6 para. 1 lit. a GDPR). You can revoke your consent to the storage of the data, the email address, and their use for sending the newsletter at any time, for example via the "unsubscribe" link in the newsletter.
+              The processing of the data entered in the newsletter registration form is based exclusively on your consent (Art. 6 para. 1 lit. a GDPR). You can revoke your consent to the storage of the data, the email address, and their use for sending the newsletter at any time, for example via the &quot;unsubscribe&quot; link in the newsletter.
             </p>
             
             <h3 className="text-xl font-semibold mt-6 mb-3">SSL or TLS Encryption</h3>
             <p>
-              This site uses SSL or TLS encryption for security reasons and to protect the transmission of confidential content. You can recognize an encrypted connection by the fact that the address line of the browser changes from "http://" to "https://" and by the lock symbol in your browser line.
+              This site uses SSL or TLS encryption for security reasons and to protect the transmission of confidential content. You can recognize an encrypted connection by the fact that the address line of the browser changes from &quot;http://&quot; to &quot;https://&quot; and by the lock symbol in your browser line.
             </p>
             
             <h3 className="text-xl font-semibold mt-6 mb-3">Right to Information, Deletion, and Blocking</h3>

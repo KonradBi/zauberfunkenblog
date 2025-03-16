@@ -10,7 +10,8 @@ interface ImpressumPageProps {
 export default async function ImpressumPage({ params }: ImpressumPageProps) {
   // Unwrap the params Promise
   const { locale } = await params;
-  const dictionary = await getDictionary(locale);
+  // Remove unused dictionary variable
+  await getDictionary(locale);
   
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">
