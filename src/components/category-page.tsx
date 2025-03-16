@@ -52,7 +52,9 @@ export function CategoryPage({
               <PostCard
                 post={post}
                 locale={locale}
-                readMoreText={locale === 'de' ? "Weiterlesen" : "Read more"}
+                dictionary={{
+                  readMore: locale === 'de' ? "Weiterlesen" : "Read more"
+                }}
               />
             </MotionCard>
           ))}
