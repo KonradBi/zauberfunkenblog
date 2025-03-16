@@ -6,6 +6,7 @@ import { ParallaxHeader } from './parallax-header';
 import { PostCard } from './post-card';
 import { motion } from 'framer-motion';
 import { Locale } from '@/i18n/config';
+import { MotionCard } from './motion-wrapper';
 
 interface CategoryPageProps {
   title: string;
@@ -25,7 +26,7 @@ export function CategoryPage({
   // Ensure posts is always an array
   const posts = postsInput || [];
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50">
       <ParallaxHeader
         title={title}
         subtitle={subtitle}
@@ -33,9 +34,9 @@ export function CategoryPage({
         buttons={<div />}
       />
       
-      <main className="container mx-auto px-4 py-16 -mt-12 relative z-10">
+      <main className="container mx-auto px-4 py-16 -mt-24 relative z-10 pt-32">
         <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-xl p-8 mb-12">
-          <h2 className="text-3xl font-bold mb-2">{title}</h2>
+          <h2 className="text-3xl font-bold mb-2 text-primary-900">{title}</h2>
           <p className="text-gray-600 mb-6 text-lg">
             {locale === 'de' 
               ? `Entdecken Sie unsere Sammlung von Artikeln über ${title}` 
@@ -47,18 +48,13 @@ export function CategoryPage({
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {posts.map((post, index) => (
-            <motion.div
-              key={post.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-            >
+            <MotionCard key={post.id} index={index}>
               <PostCard
                 post={post}
                 locale={locale}
                 readMoreText={locale === 'de' ? "Weiterlesen" : "Read more"}
               />
-            </motion.div>
+            </MotionCard>
           ))}
         </div>
         

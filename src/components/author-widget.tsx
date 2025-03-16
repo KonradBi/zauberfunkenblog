@@ -51,7 +51,7 @@ export function AuthorWidget({ authorName, authorImage, authorBio, locale, dicti
               <p className="text-sm text-gray-700 mb-3 font-medium">{authorBio}</p>
               
               <Link 
-                href={`/${locale}/uber-uns`}
+                href={`/${locale}/ueber-uns`}
                 className="inline-block text-sm font-medium text-primary hover:underline"
               >
                 {dictionary.learnMore}

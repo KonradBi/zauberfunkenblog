@@ -31,7 +31,7 @@ export default async function ExperiencesPage({ params }: ExperiencesPageProps) 
     <CategoryPage
       title={dictionary.common.navigation.experiences || "Erlebnisse"}
       subtitle={dictionary.common.latestPosts || "Neueste Beiträge"}
-      backgroundImage="https://images.unsplash.com/photo-1682687220742-aba19b51f11a?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3"
+      backgroundImage="https://images.unsplash.com/photo-1527631746610-bca00a040d60?ixlib=rb-4.0.3&auto=format&fit=crop&w=3540&q=80"
       posts={posts}
       locale={locale}
     />
