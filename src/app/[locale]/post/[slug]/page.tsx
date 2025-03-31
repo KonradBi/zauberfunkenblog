@@ -1,5 +1,5 @@
 import { getPostBySlug, getPostTranslation } from '@/lib/wordpress-api';
-import { Post } from '@/components/post';
+import { Post } from '@/components';
 import { Metadata } from 'next';
 
 export async function generateMetadata({ params }: any): Promise<Metadata> {
