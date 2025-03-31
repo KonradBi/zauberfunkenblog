@@ -2,6 +2,7 @@ import { getPostBySlug, getPostTranslation } from '@/lib/wordpress-api';
 import { Post } from '@/components';
 import { Metadata } from 'next';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function generateMetadata({ params }: any): Promise<Metadata> {
   const locale = params.locale;
   const slug = params.slug;
@@ -33,6 +34,7 @@ export async function generateMetadata({ params }: any): Promise<Metadata> {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default async function PostPage({ params }: any) {
   const locale = params.locale;
   const slug = params.slug;
