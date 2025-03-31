@@ -1,15 +1,9 @@
 import { getPostsByCategorySlug, getPostTranslation } from '@/lib/wordpress-api';
 import { CategoryPage } from '@/components/category-page';
 import { Metadata } from 'next';
+import { PageProps } from '../erlebnisse/page';
 
-interface PageProps {
-  params: {
-    locale: 'de' | 'en';
-  };
-}
-
-// Generate metadata for this page
-export async function generateMetadata({ params }: { params: PageProps['params'] }): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale } = params;
   
   return {
@@ -27,8 +21,9 @@ export async function generateMetadata({ params }: { params: PageProps['params']
   };
 }
 
-export default async function HotelsPage({ params: { locale } }: PageProps) {
-  const posts = await getPostsByCategorySlug('hotels', locale, 50);
+export default async function HotelsPage({ params }: PageProps) {
+  const { locale } = params;
+  const posts = await getPostsByCategorySlug('hotels', locale as 'de' | 'en', 50);
   const postsTranslations = await Promise.all(
     posts.map(async (post) => {
       const translationId = post.acf?.translation_id || post.meta?.translation_id;
@@ -44,7 +39,7 @@ export default async function HotelsPage({ params: { locale } }: PageProps) {
       backgroundImage="/images/hotels-header.jpg"
       posts={posts}
       postsTranslations={postsTranslations}
-      locale={locale}
+      locale={locale as 'de' | 'en'}
     />
   );
 }

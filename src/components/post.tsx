@@ -6,7 +6,7 @@ import { WordPressPost } from '@/lib/wordpress-api';
 interface PostProps {
   post: WordPressPost;
   translation: WordPressPost | null;
-  locale: 'de' | 'en';
+  locale: string;
 }
 
 export function Post({ post, translation, locale }: PostProps) {

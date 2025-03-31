@@ -1,36 +1,29 @@
 import { getPostsByCategorySlug, getPostTranslation } from '@/lib/wordpress-api';
 import { CategoryPage } from '@/components/category-page';
 import { Metadata } from 'next';
+import { PageProps } from '../erlebnisse/page';
 
-interface PageProps {
-  params: {
-    locale: 'de' | 'en';
-  };
-}
-
-export async function generateMetadata({ params }: { params: PageProps['params'] }): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale } = params;
-  const alternateLocale = locale === 'de' ? 'en' : 'de';
   
-  const metadata: Metadata = {
+  return {
     title: locale === 'de' ? 'Restaurants' : 'Restaurants',
     description: locale === 'de' 
-      ? 'Entdecke besondere Restaurants und kulinarische Erlebnisse für deine Reisen.'
-      : 'Discover special restaurants and culinary experiences for your travels.',
+      ? 'Entdecke besondere Restaurants und kulinarische Erlebnisse.'
+      : 'Discover unique restaurants and culinary experiences.',
     alternates: {
-      canonical: `https://zauberfunken.com/${locale}/restaurants`,
+      canonical: `/${locale}/restaurants`,
       languages: {
-        [locale]: `https://zauberfunken.com/${locale}/restaurants`,
-        [alternateLocale]: `https://zauberfunken.com/${alternateLocale}/restaurants`,
-      },
-    },
+        'de': '/de/restaurants',
+        'en': '/en/restaurants'
+      }
+    }
   };
-  
-  return metadata;
 }
 
-export default async function RestaurantsPage({ params: { locale } }: PageProps) {
-  const posts = await getPostsByCategorySlug('restaurants', locale, 50);
+export default async function RestaurantsPage({ params }: PageProps) {
+  const { locale } = params;
+  const posts = await getPostsByCategorySlug('restaurants', locale as 'de' | 'en', 50);
   const postsTranslations = await Promise.all(
     posts.map(async (post) => {
       const translationId = post.acf?.translation_id || post.meta?.translation_id;
@@ -46,7 +39,7 @@ export default async function RestaurantsPage({ params: { locale } }: PageProps)
       backgroundImage="/images/restaurants-header.jpg"
       posts={posts}
       postsTranslations={postsTranslations}
-      locale={locale}
+      locale={locale as 'de' | 'en'}
     />
   );
 }

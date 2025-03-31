@@ -2,16 +2,17 @@ import { getPostBySlug, getPostTranslation } from '@/lib/wordpress-api';
 import { Post } from '@/components/post';
 import { Metadata } from 'next';
 
-interface PageProps {
+export interface PostPageProps {
   params: {
-    locale: 'de' | 'en';
+    locale: string;
     slug: string;
   };
+  searchParams?: Record<string, string | string[]>;
 }
 
-export async function generateMetadata({ params }: { params: PageProps['params'] }): Promise<Metadata> {
+export async function generateMetadata({ params }: PostPageProps): Promise<Metadata> {
   const { locale, slug } = params;
-  const post = await getPostBySlug(slug, locale);
+  const post = await getPostBySlug(slug, locale as 'de' | 'en');
   
   if (!post) {
     return {
@@ -38,8 +39,9 @@ export async function generateMetadata({ params }: { params: PageProps['params']
   };
 }
 
-export default async function PostPage({ params: { locale, slug } }: PageProps) {
-  const post = await getPostBySlug(slug, locale);
+export default async function PostPage({ params }: PostPageProps) {
+  const { locale, slug } = params;
+  const post = await getPostBySlug(slug, locale as 'de' | 'en');
   
   if (!post) {
     return <div>Post not found</div>;
@@ -49,6 +51,6 @@ export default async function PostPage({ params: { locale, slug } }: PageProps) 
   const translation = translationId ? await getPostTranslation(translationId, locale === 'de' ? 'en' : 'de') : null;
 
   return (
-    <Post post={post} translation={translation} locale={locale} />
+    <Post post={post} translation={translation} locale={locale as 'de' | 'en'} />
   );
 }
