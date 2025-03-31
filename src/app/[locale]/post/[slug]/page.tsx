@@ -7,16 +7,16 @@ import { Button } from '@/components/ui/button';
 import { getDictionary } from '@/i18n/dictionaries';
 import { Metadata } from 'next';
 
-interface PostPageProps {
-  params: Promise<{
-    locale: Locale;
+interface PageProps {
+  params: {
+    locale: 'de' | 'en';
     slug: string;
-  }>;
+  };
 }
 
 // Generiere Metadaten inklusive hreflang-Tags
-export async function generateMetadata({ params }: { params: PostPageProps['params'] }): Promise<Metadata> {
-  const { locale, slug } = await params;
+export async function generateMetadata({ params }: { params: PageProps['params'] }): Promise<Metadata> {
+  const { locale, slug } = params;
   const post = await getPostBySlug(slug, locale);
   
   if (!post) {
@@ -53,21 +53,21 @@ export async function generateMetadata({ params }: { params: PostPageProps['para
   return metadata;
 }
 
-export default async function PostPage({ params }: PostPageProps) {
-  // In Next.js 15, params is a Promise that needs to be awaited
-  const { locale, slug } = await params;
-  const dictionary = await getDictionary(locale);
+export default async function PostPage({ params: { locale, slug } }: PageProps) {
   const post = await getPostBySlug(slug, locale);
   
   if (!post) {
     notFound();
   }
+
+  // Get the translation ID from either ACF or meta fields
+  const translationId = post.acf?.translation_id || post.meta?.translation_id;
+  let translatedPost = null;
   
-  // Hole Translation ID und Wechsel-Links
-  const translationId = post.meta?.translation_id;
-  const alternateLocale = locale === 'de' ? 'en' : 'de';
-  const alternatePost = translationId ? await getPostTranslation(translationId, alternateLocale) : null;
-  
+  if (translationId) {
+    translatedPost = await getPostTranslation(translationId, locale === 'de' ? 'en' : 'de');
+  }
+
   // Format the date
   const formattedDate = new Date(post.date).toLocaleDateString(
     locale === 'de' ? 'de-DE' : 'en-US',
@@ -89,15 +89,15 @@ export default async function PostPage({ params }: PostPageProps) {
         </Link>
         
         {/* Sprachauswahl-Link, falls Übersetzung verfügbar */}
-        {alternatePost && (
+        {translatedPost && (
           <Link 
-            href={`/${alternateLocale}/post/${alternatePost.slug}`}
+            href={`/${locale === 'de' ? 'en' : 'de'}/post/${translatedPost.slug}`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white/90 backdrop-blur-sm text-primary border border-primary/10 shadow-sm transition-all duration-300 hover:bg-white hover:shadow-md hover:scale-105"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4">
               <path d="m5 8 6 6 6-6"/>
             </svg>
-            {alternateLocale === 'en' ? 'Read in English' : 'Auf Deutsch lesen'}
+            {locale === 'de' ? 'Read in English' : 'Auf Deutsch lesen'}
           </Link>
         )}
       </div>
@@ -149,10 +149,10 @@ export default async function PostPage({ params }: PostPageProps) {
           </Link>
           
           {/* Sprachauswahl-Button am Ende, falls Übersetzung verfügbar */}
-          {alternatePost && (
-            <Link href={`/${alternateLocale}/post/${alternatePost.slug}`}>
+          {translatedPost && (
+            <Link href={`/${locale === 'de' ? 'en' : 'de'}/post/${translatedPost.slug}`}>
               <Button>
-                {alternateLocale === 'en' ? 'Read in English' : 'Auf Deutsch lesen'}
+                {locale === 'de' ? 'Read in English' : 'Auf Deutsch lesen'}
               </Button>
             </Link>
           )}

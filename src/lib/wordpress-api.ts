@@ -96,33 +96,33 @@ export interface WordPressPost {
     protected: boolean;
   };
   featured_media: number;
-  featured_image_url?: string; // Vom Child-Theme hinzugefügtes Feld
+  featured_image_url?: string;
   categories: number[];
-  categories_info?: Array<{ // Vom Child-Theme hinzugefügtes Feld
+  categories_info?: Array<{
     id: number;
     name: string;
     slug: string;
     link: string;
   }>;
   tags: number[];
-  tags_info?: Array<{ // Vom Child-Theme hinzugefügtes Feld
+  tags_info?: Array<{
     id: number;
     name: string;
     slug: string;
     link: string;
   }>;
-  translations?: Record<string, { // Vom Child-Theme hinzugefügtes Feld für WPML
+  translations?: Record<string, {
     id: number;
     slug: string;
     link: string;
   }>;
   meta?: {
     translation_id?: string | number;
-    [key: string]: any;
+    [key: string]: string | number | boolean | null | undefined;
   };
   acf?: {
     translation_id?: string | number;
-    [key: string]: any;
+    [key: string]: string | number | boolean | null | undefined;
   };
   _embedded?: {
     'wp:featuredmedia'?: Array<{
@@ -133,7 +133,7 @@ export interface WordPressPost {
       id: number;
       name: string;
       slug: string;
-      taxonomy?: string; // Optional field for taxonomy type
+      taxonomy?: string;
     }>>;
   };
 }
