@@ -13,6 +13,7 @@ interface CategoryPageProps {
   subtitle: string;
   backgroundImage: string;
   posts: WordPressPost[] | null | undefined;
+  postsTranslations?: (WordPressPost | null)[] | null | undefined;
   locale: Locale;
 }
 
@@ -21,10 +22,13 @@ export function CategoryPage({
   subtitle, 
   backgroundImage, 
   posts: postsInput,
+  postsTranslations,
   locale 
 }: CategoryPageProps) {
   // Ensure posts is always an array
   const posts = postsInput || [];
+  const translations = postsTranslations || [];
+  
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50">
       <ParallaxHeader
@@ -55,6 +59,7 @@ export function CategoryPage({
                 dictionary={{
                   readMore: locale === 'de' ? "Weiterlesen" : "Read more"
                 }}
+                translation={translations[index] || null}
               />
             </MotionCard>
           ))}

@@ -2,8 +2,10 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Locale } from '@/i18n/config';
-import { getPostBySlug } from '@/lib/wordpress-api';
+import { getPostBySlug, getPostTranslation } from '@/lib/wordpress-api';
 import { Button } from '@/components/ui/button';
+import { getDictionary } from '@/i18n/dictionaries';
+import { Metadata } from 'next';
 
 interface PostPageProps {
   params: Promise<{
@@ -12,14 +14,59 @@ interface PostPageProps {
   }>;
 }
 
+// Generiere Metadaten inklusive hreflang-Tags
+export async function generateMetadata({ params }: { params: PostPageProps['params'] }): Promise<Metadata> {
+  const { locale, slug } = await params;
+  const post = await getPostBySlug(slug, locale);
+  
+  if (!post) {
+    return {
+      title: '404 - Not Found',
+    };
+  }
+  
+  // Hole Translation ID
+  const translationId = post.meta?.translation_id;
+  
+  // Falls eine Translation ID existiert, suche nach der alternativen Sprachversion
+  const alternateLocale = locale === 'de' ? 'en' : 'de';
+  const alternatePost = translationId ? await getPostTranslation(translationId, alternateLocale) : null;
+  
+  const metadata: Metadata = {
+    title: post.title.rendered,
+    description: post.excerpt.rendered.replace(/<[^>]*>/g, '').substring(0, 160),
+    alternates: {
+      canonical: `https://zauberfunken.com/${locale}/post/${slug}`,
+      languages: {},
+    },
+  };
+  
+  // Füge hreflang-Tags hinzu, wenn es Übersetzungen gibt
+  if (metadata.alternates?.languages && alternatePost) {
+    // Aktuelle Sprache
+    metadata.alternates.languages[locale] = `https://zauberfunken.com/${locale}/post/${slug}`;
+    
+    // Alternative Sprache
+    metadata.alternates.languages[alternateLocale] = `https://zauberfunken.com/${alternateLocale}/post/${alternatePost.slug}`;
+  }
+  
+  return metadata;
+}
+
 export default async function PostPage({ params }: PostPageProps) {
   // In Next.js 15, params is a Promise that needs to be awaited
   const { locale, slug } = await params;
+  const dictionary = await getDictionary(locale);
   const post = await getPostBySlug(slug, locale);
   
   if (!post) {
     notFound();
   }
+  
+  // Hole Translation ID und Wechsel-Links
+  const translationId = post.meta?.translation_id;
+  const alternateLocale = locale === 'de' ? 'en' : 'de';
+  const alternatePost = translationId ? await getPostTranslation(translationId, alternateLocale) : null;
   
   // Format the date
   const formattedDate = new Date(post.date).toLocaleDateString(
@@ -36,10 +83,23 @@ export default async function PostPage({ params }: PostPageProps) {
   
   return (
     <article className="container py-12 max-w-4xl mx-auto">
-      <div className="mb-8">
+      <div className="mb-8 flex justify-between items-center">
         <Link href={`/${locale}`} className="text-muted-foreground hover:text-primary">
           ← {locale === 'de' ? 'Zurück zur Startseite' : 'Back to Home'}
         </Link>
+        
+        {/* Sprachauswahl-Link, falls Übersetzung verfügbar */}
+        {alternatePost && (
+          <Link 
+            href={`/${alternateLocale}/post/${alternatePost.slug}`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white/90 backdrop-blur-sm text-primary border border-primary/10 shadow-sm transition-all duration-300 hover:bg-white hover:shadow-md hover:scale-105"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4">
+              <path d="m5 8 6 6 6-6"/>
+            </svg>
+            {alternateLocale === 'en' ? 'Read in English' : 'Auf Deutsch lesen'}
+          </Link>
+        )}
       </div>
       
       <div className="space-y-4 mb-8">
@@ -81,14 +141,21 @@ export default async function PostPage({ params }: PostPageProps) {
       />
       
       <div className="mt-12 pt-8 border-t">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-wrap justify-between items-center gap-4">
           <Link href={`/${locale}`}>
             <Button variant="outline">
               ← {locale === 'de' ? 'Zurück zur Startseite' : 'Back to Home'}
             </Button>
           </Link>
           
-          {/* Share buttons could be added here */}
+          {/* Sprachauswahl-Button am Ende, falls Übersetzung verfügbar */}
+          {alternatePost && (
+            <Link href={`/${alternateLocale}/post/${alternatePost.slug}`}>
+              <Button>
+                {alternateLocale === 'en' ? 'Read in English' : 'Auf Deutsch lesen'}
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </article>

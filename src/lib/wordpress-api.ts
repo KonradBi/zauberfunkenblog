@@ -116,6 +116,14 @@ export interface WordPressPost {
     slug: string;
     link: string;
   }>;
+  meta?: {
+    translation_id?: string | number;
+    [key: string]: any;
+  };
+  acf?: {
+    translation_id?: string | number;
+    [key: string]: any;
+  };
   _embedded?: {
     'wp:featuredmedia'?: Array<{
       source_url: string;
@@ -125,6 +133,7 @@ export interface WordPressPost {
       id: number;
       name: string;
       slug: string;
+      taxonomy?: string; // Optional field for taxonomy type
     }>>;
   };
 }
@@ -153,6 +162,25 @@ export interface WordPressMedia {
   alt_text: string;
 }
 
+/**
+ * Holt die Translation ID aus einem Post
+ * @param post Der WordPress-Post 
+ * @returns Die Translation ID oder null, wenn keine gefunden
+ */
+function getTranslationId(post: WordPressPost): string | number | null {
+  // Versuche zuerst, die Translation ID aus dem ACF-Objekt zu bekommen
+  if (post.acf?.translation_id) {
+    return post.acf.translation_id;
+  }
+  
+  // Dann versuche, die Translation ID aus dem Meta-Objekt zu bekommen (Fallback)
+  if (post.meta?.translation_id) {
+    return post.meta.translation_id;
+  }
+  
+  return null;
+}
+
 export async function getPosts(
   category?: number | string,
   page: number = 1,
@@ -169,8 +197,17 @@ export async function getPosts(
         : `&category_name=${category}`;
     }
     
-    // Add language parameter for multilingual support (requires WPML or similar plugin)
-    endpoint += `&lang=${lang}`;
+    // Maps language code to WordPress language taxonomy ID
+    const languageTaxonomyId = lang === 'en' ? 7 : 6; // 7 = English, 6 = German
+    
+    // Filter by language taxonomy instead of using lang parameter
+    endpoint += `&language=${languageTaxonomyId}`;
+    
+    // Debugging: Zeige an, welche Sprache wir abfragen
+    console.log(`Fetching posts for language: ${lang} (taxonomy ID: ${languageTaxonomyId})`);
+    
+    // Add meta fields and ACF fields to the response
+    endpoint += '&_fields=id,date,modified,slug,status,type,link,title,content,excerpt,featured_media,featured_image_url,categories,categories_info,tags,tags_info,translations,_embedded,meta,acf';
     
     console.log('Fetching posts from:', endpoint);
     
@@ -179,7 +216,7 @@ export async function getPosts(
     console.log('Received posts:', postsData.length);
     
     // Verarbeite die Antwort, um sicherzustellen, dass die Bilder korrekt eingebettet sind
-    const posts = postsData.map(post => {
+    const posts = await Promise.all(postsData.map(async post => {
       // Stelle sicher, dass _embedded existiert
       if (!post._embedded) {
         post._embedded = {};
@@ -197,31 +234,63 @@ export async function getPosts(
           ];
           console.log(`Post ${post.id} - Using featured_image_url:`, post.featured_image_url);
         } 
-        // Wenn kein featured_image_url vorhanden ist, konstruiere die URL basierend auf der WordPress-API
+        // Wenn kein featured_image_url vorhanden ist, hole das Medium direkt
         else {
-          // Konstruiere eine URL zum Bild basierend auf der Media-ID
-          const mediaId = post.featured_media;
-          console.log(`Post ${post.id} - Constructing media URL for media ID:`, mediaId);
-          
-          // Stelle sicher, dass wp:featuredmedia existiert
-          if (!post._embedded['wp:featuredmedia']) {
-            post._embedded['wp:featuredmedia'] = [];
+          try {
+            const mediaData = await getMedia(post.featured_media);
+            if (mediaData) {
+              // Stelle sicher, dass wp:featuredmedia existiert
+              if (!post._embedded['wp:featuredmedia']) {
+                post._embedded['wp:featuredmedia'] = [];
+              }
+              
+              post._embedded['wp:featuredmedia'][0] = {
+                source_url: mediaData.source_url,
+                alt_text: mediaData.alt_text || post.title.rendered
+              };
+              
+              console.log(`Post ${post.id} - Retrieved media:`, post._embedded['wp:featuredmedia'][0].source_url);
+            } else {
+              // Fallback URL wenn getMedia kein Ergebnis liefert
+              const mediaId = post.featured_media;
+              const fallbackUrl = `${WORDPRESS_API_URL.replace('/wp/v2', '')}/wp-content/uploads/featured-media/${mediaId}.jpg`;
+              
+              post._embedded['wp:featuredmedia'] = [
+                {
+                  source_url: fallbackUrl,
+                  alt_text: post.title.rendered
+                }
+              ];
+              console.log(`Post ${post.id} - Using fallback URL:`, fallbackUrl);
+            }
+          } catch (mediaError) {
+            console.error(`Error retrieving media for post ${post.id}:`, mediaError);
+            
+            // Fallback URL
+            const mediaId = post.featured_media;
+            const fallbackUrl = `${WORDPRESS_API_URL.replace('/wp/v2', '')}/wp-content/uploads/featured-media/${mediaId}.jpg`;
+            
+            // Stelle sicher, dass wp:featuredmedia existiert
+            if (!post._embedded['wp:featuredmedia']) {
+              post._embedded['wp:featuredmedia'] = [];
+            }
+            
+            post._embedded['wp:featuredmedia'][0] = {
+              source_url: fallbackUrl,
+              alt_text: post.title.rendered
+            };
+            
+            console.log(`Post ${post.id} - Using fallback URL:`, fallbackUrl);
           }
-          
-          // Füge einen Platzhalter hinzu, der später durch getMedia ersetzt werden kann
-          post._embedded['wp:featuredmedia'][0] = {
-            source_url: `${WORDPRESS_API_URL.replace('/wp/v2', '')}/wp-content/uploads/featured-${mediaId}.jpg`,
-            alt_text: post.title.rendered
-          };
         }
       }
       
       // Debug-Ausgabe für Bilder
       console.log(`Post ${post.id} - ${post.title.rendered} - Featured Media:`, 
-                 post._embedded['wp:featuredmedia']?.[0]?.source_url || 'No image');
+                post._embedded['wp:featuredmedia']?.[0]?.source_url || 'No image');
       
       return post;
-    });
+    }));
     
     return posts;
   } catch (error) {
@@ -235,15 +304,76 @@ export async function getPostBySlug(
   lang: string = 'de'
 ): Promise<WordPressPost | null> {
   try {
-    const endpoint = `${WORDPRESS_API_URL}/posts?_embed&slug=${slug}&lang=${lang}`;
-    console.log('Fetching post by slug from:', endpoint);
+    // Maps language code to WordPress language taxonomy ID
+    const languageTaxonomyId = lang === 'en' ? 7 : 6; // 7 = English, 6 = German
+    
+    // Add meta fields and ACF fields to the response
+    const endpoint = `${WORDPRESS_API_URL}/posts?_embed=true&slug=${slug}&language=${languageTaxonomyId}&_fields=id,date,modified,slug,status,type,link,title,content,excerpt,featured_media,featured_image_url,categories,categories_info,tags,tags_info,translations,_embedded,meta,acf`;
+    console.log(`Fetching post by slug from: ${endpoint} (language: ${lang}, taxonomy ID: ${languageTaxonomyId})`);
     
     // API-Aufruf mit automatischem Fallback zur JWT-Authentifizierung bei Bedarf
     const postsData = await makeApiRequest<WordPressPost[]>(endpoint);
     
     if (postsData.length > 0) {
       console.log('Found post with slug:', slug);
-      return postsData[0];
+      const post = postsData[0];
+      
+      // Stelle sicher, dass Bilder korrekt eingebettet sind
+      if (post.featured_media && (!post._embedded?.['wp:featuredmedia'] || !post._embedded?.['wp:featuredmedia'][0]?.source_url)) {
+        // Initializiere _embedded, falls nicht vorhanden
+        if (!post._embedded) {
+          post._embedded = {};
+        }
+        
+        // Versuche zuerst, das Bild aus featured_image_url zu bekommen
+        if (post.featured_image_url) {
+          post._embedded['wp:featuredmedia'] = [
+            {
+              source_url: post.featured_image_url,
+              alt_text: post.title.rendered
+            }
+          ];
+          console.log(`Post ${post.id} - Using featured_image_url:`, post.featured_image_url);
+        } else {
+          // Versuche, das Bild direkt zu laden
+          try {
+            const mediaData = await getMedia(post.featured_media);
+            if (mediaData) {
+              // Stelle sicher, dass wp:featuredmedia existiert
+              if (!post._embedded['wp:featuredmedia']) {
+                post._embedded['wp:featuredmedia'] = [];
+              }
+              
+              post._embedded['wp:featuredmedia'][0] = {
+                source_url: mediaData.source_url,
+                alt_text: mediaData.alt_text || post.title.rendered
+              };
+              
+              console.log(`Post ${post.id} - Retrieved media:`, post._embedded['wp:featuredmedia'][0].source_url);
+            }
+          } catch (mediaError) {
+            console.error(`Error retrieving media for post ${post.id}:`, mediaError);
+            
+            // Fallback URL
+            const mediaId = post.featured_media;
+            const fallbackUrl = `${WORDPRESS_API_URL.replace('/wp/v2', '')}/wp-content/uploads/featured-media/${mediaId}.jpg`;
+            
+            // Stelle sicher, dass wp:featuredmedia existiert
+            if (!post._embedded['wp:featuredmedia']) {
+              post._embedded['wp:featuredmedia'] = [];
+            }
+            
+            post._embedded['wp:featuredmedia'][0] = {
+              source_url: fallbackUrl,
+              alt_text: post.title.rendered
+            };
+            
+            console.log(`Post ${post.id} - Using fallback URL:`, fallbackUrl);
+          }
+        }
+      }
+      
+      return post;
     }
     
     console.log('No post found with slug:', slug);
@@ -258,8 +388,11 @@ export async function getCategories(
   lang: string = 'de'
 ): Promise<WordPressCategory[]> {
   try {
-    const endpoint = `${WORDPRESS_API_URL}/categories?lang=${lang}`;
-    console.log('Fetching categories from:', endpoint);
+    // Maps language code to WordPress language taxonomy ID
+    const languageTaxonomyId = lang === 'en' ? 7 : 6; // 7 = English, 6 = German
+    
+    const endpoint = `${WORDPRESS_API_URL}/categories?language=${languageTaxonomyId}`;
+    console.log(`Fetching categories for language: ${lang} (taxonomy ID: ${languageTaxonomyId})`);
     
     // API-Aufruf mit automatischem Fallback zur JWT-Authentifizierung bei Bedarf
     const categoriesData = await makeApiRequest<WordPressCategory[]>(endpoint);
@@ -337,14 +470,17 @@ export async function testApiConnection(): Promise<ApiConnectionResult> {
 // Function to get posts by category slug
 export async function getPostsByCategorySlug(
   slug: string,
-  page: number = 1,
+  locale: string = 'de',
   perPage: number = 10,
-  lang: string = 'de'
+  page: number = 1
 ): Promise<WordPressPost[]> {
   try {
+    // Maps language code to WordPress language taxonomy ID
+    const languageTaxonomyId = locale === 'en' ? 7 : 6; // 7 = English, 6 = German
+    
     // First get the category ID from the slug
-    const categoryEndpoint = `${WORDPRESS_API_URL}/categories?slug=${slug}&lang=${lang}`;
-    console.log('Fetching category by slug from:', categoryEndpoint);
+    const categoryEndpoint = `${WORDPRESS_API_URL}/categories?slug=${slug}&language=${languageTaxonomyId}`;
+    console.log(`Fetching category by slug from: ${categoryEndpoint} (language: ${locale}, taxonomy ID: ${languageTaxonomyId})`);
     
     // API-Aufruf mit automatischem Fallback zur JWT-Authentifizierung bei Bedarf
     const categoriesData = await makeApiRequest<WordPressCategory[]>(categoryEndpoint);
@@ -355,12 +491,158 @@ export async function getPostsByCategorySlug(
     }
     
     const categoryId = categoriesData[0].id;
-    console.log('Found category ID:', categoryId, 'for slug:', slug);
+    console.log('Found category ID:', categoryId, 'for slug:', slug, 'in language:', locale);
     
-    // Then get posts by category ID
-    return getPosts(categoryId, page, perPage, lang);
+    // Then get posts by category ID, ensuring we only get posts in the specified language
+    // Korrigierte Parameter-Reihenfolge: category, page, perPage, lang
+    const posts = await getPosts(categoryId, page, perPage, locale);
+    
+    // Zusätzliches Logging
+    console.log(`Retrieved ${posts.length} posts in category ${slug} for locale ${locale}`);
+    posts.forEach(post => {
+      console.log(`- Post ID: ${post.id}, Title: ${post.title.rendered}, Slug: ${post.slug}, Translation ID: ${post.acf?.translation_id || post.meta?.translation_id || 'none'}`);
+    });
+    
+    return posts;
   } catch (error) {
     console.error('Error fetching posts by category slug from WordPress:', error);
+    return [];
+  }
+}
+
+/**
+ * Holt die Übersetzung eines Posts basierend auf der translation_id
+ * @param post Der Post-Objekt oder die translation_id direkt
+ * @param targetLang Die Zielsprache (z.B. 'en', 'de')
+ * @returns Den übersetzten Post oder null, wenn keine Übersetzung gefunden wurde
+ */
+export async function getPostTranslation(
+  post: WordPressPost | string | number,
+  targetLang: string
+): Promise<WordPressPost | null> {
+  try {
+    let translationId: string | number | undefined;
+    
+    if (typeof post === 'object' && post !== null) {
+      // Extract translation_id from post object
+      const id = getTranslationId(post);
+      if (id !== null) {
+        translationId = id;
+      }
+    } else {
+      // The post parameter is directly the translation ID
+      translationId = post;
+    }
+    
+    if (!translationId) {
+      console.log('No translation ID found');
+      return null;
+    }
+
+    // Maps language code to WordPress language taxonomy ID
+    const languageTaxonomyId = targetLang === 'en' ? 7 : 6; // 7 = English, 6 = German
+    
+    // Query posts with the specified language taxonomy and filter by ACF translation_id
+    const endpoint = `${WORDPRESS_API_URL}/posts?_embed=true&language=${languageTaxonomyId}&per_page=50&_fields=id,date,modified,slug,status,type,link,title,content,excerpt,featured_media,featured_image_url,categories,categories_info,tags,tags_info,translations,_embedded,meta,acf`;
+    
+    console.log(`Fetching post translation with ID ${translationId} in language ${targetLang} (taxonomy ID: ${languageTaxonomyId})`);
+    
+    // API-Aufruf mit automatischem Fallback zur JWT-Authentifizierung bei Bedarf
+    const postsData = await makeApiRequest<WordPressPost[]>(endpoint);
+    
+    if (postsData.length > 0) {
+      // Find the post with matching translation_id
+      const translatedPost = postsData.find(p => {
+        const postTranslationId = p.acf?.translation_id || p.meta?.translation_id;
+        return postTranslationId && postTranslationId.toString() === translationId.toString();
+      });
+      
+      if (translatedPost) {
+        console.log(`Found post translation with ID ${translationId} in language ${targetLang}, Post ID: ${translatedPost.id}, Title: ${translatedPost.title.rendered}`);
+        return translatedPost;
+      }
+    }
+    
+    console.log(`No post translation found with ID ${translationId} in language ${targetLang}`);
+    return null;
+  } catch (error) {
+    console.error(`Error fetching post translation:`, error);
+    return null;
+  }
+}
+
+/**
+ * Holt alle verfügbaren Sprachversionen eines Posts basierend auf der translation_id
+ * @param translationId Die ID, die die übersetzten Posts miteinander verknüpft
+ * @returns Ein Objekt mit Sprachcodes als Schlüssel und Posts als Werte
+ */
+export async function getAllPostTranslations(
+  translationId: string | number
+): Promise<Record<string, WordPressPost>> {
+  try {
+    if (!translationId) {
+      console.log('No translation ID provided');
+      return {};
+    }
+
+    const translationsByLang: Record<string, WordPressPost> = {};
+    
+    // Get German posts with the translation ID
+    const germanPosts = await getPostsByTranslationId(translationId, 'de');
+    if (germanPosts.length > 0) {
+      translationsByLang['de'] = germanPosts[0];
+    }
+    
+    // Get English posts with the translation ID
+    const englishPosts = await getPostsByTranslationId(translationId, 'en');
+    if (englishPosts.length > 0) {
+      translationsByLang['en'] = englishPosts[0];
+    }
+    
+    if (Object.keys(translationsByLang).length > 0) {
+      return translationsByLang;
+    }
+    
+    console.log(`No post translations found with ID ${translationId}`);
+    return {};
+  } catch (error) {
+    console.error(`Error fetching all post translations with ID ${translationId}:`, error);
+    return {};
+  }
+}
+
+/**
+ * Helper function to get posts by translation ID and language
+ */
+async function getPostsByTranslationId(
+  translationId: string | number,
+  lang: string = 'de'
+): Promise<WordPressPost[]> {
+  try {
+    // Maps language code to WordPress language taxonomy ID
+    const languageTaxonomyId = lang === 'en' ? 7 : 6; // 7 = English, 6 = German
+    
+    // Query posts with the specified language taxonomy
+    const endpoint = `${WORDPRESS_API_URL}/posts?_embed=true&language=${languageTaxonomyId}&per_page=50&_fields=id,date,modified,slug,status,type,link,title,content,excerpt,featured_media,featured_image_url,categories,categories_info,tags,tags_info,translations,_embedded,meta,acf`;
+    
+    console.log(`Fetching posts with translation ID ${translationId} in language ${lang} (taxonomy ID: ${languageTaxonomyId})`);
+    
+    // API-Aufruf mit automatischem Fallback zur JWT-Authentifizierung bei Bedarf
+    const postsData = await makeApiRequest<WordPressPost[]>(endpoint);
+    
+    // Filter posts by translation ID
+    const filteredPosts = postsData.filter(post => {
+      const postTranslationId = post.acf?.translation_id || post.meta?.translation_id;
+      if (postTranslationId && postTranslationId.toString() === translationId.toString()) {
+        console.log(`Found post with translation ID ${translationId} in ${lang}: ID ${post.id}, Title: ${post.title.rendered}, Slug: ${post.slug}`);
+        return true;
+      }
+      return false;
+    });
+    
+    return filteredPosts;
+  } catch (error) {
+    console.error(`Error fetching posts by translation ID:`, error);
     return [];
   }
 }
