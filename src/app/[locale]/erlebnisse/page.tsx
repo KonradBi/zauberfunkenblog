@@ -2,14 +2,11 @@ import { getPostsByCategorySlug, getPostTranslation } from '@/lib/wordpress-api'
 import { CategoryPage } from '@/components/category-page';
 import { Metadata } from 'next';
 
-export interface PageProps {
-  params: {
-    locale: string;
-  };
-  searchParams?: Record<string, string | string[]>;
-}
-
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({ 
+  params 
+}: { 
+  params: { locale: string } 
+}): Promise<Metadata> {
   const { locale } = params;
   
   return {
@@ -27,7 +24,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function ErlebnissePage({ params }: PageProps) {
+export default async function ErlebnissePage({ 
+  params 
+}: { 
+  params: { locale: string } 
+}) {
   const { locale } = params;
   const posts = await getPostsByCategorySlug('erlebnisse', locale as 'de' | 'en', 50);
   const postsTranslations = await Promise.all(

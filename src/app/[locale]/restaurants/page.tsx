@@ -1,9 +1,12 @@
 import { getPostsByCategorySlug, getPostTranslation } from '@/lib/wordpress-api';
 import { CategoryPage } from '@/components/category-page';
 import { Metadata } from 'next';
-import { PageProps } from '../erlebnisse/page';
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({ 
+  params 
+}: { 
+  params: { locale: string } 
+}): Promise<Metadata> {
   const { locale } = params;
   
   return {
@@ -21,7 +24,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function RestaurantsPage({ params }: PageProps) {
+export default async function RestaurantsPage({ 
+  params 
+}: { 
+  params: { locale: string } 
+}) {
   const { locale } = params;
   const posts = await getPostsByCategorySlug('restaurants', locale as 'de' | 'en', 50);
   const postsTranslations = await Promise.all(

@@ -2,15 +2,14 @@ import { getPostBySlug, getPostTranslation } from '@/lib/wordpress-api';
 import { Post } from '@/components/post';
 import { Metadata } from 'next';
 
-export interface PostPageProps {
-  params: {
-    locale: string;
-    slug: string;
-  };
-  searchParams?: Record<string, string | string[]>;
-}
-
-export async function generateMetadata({ params }: PostPageProps): Promise<Metadata> {
+export async function generateMetadata({ 
+  params 
+}: { 
+  params: { 
+    locale: string; 
+    slug: string; 
+  } 
+}): Promise<Metadata> {
   const { locale, slug } = params;
   const post = await getPostBySlug(slug, locale as 'de' | 'en');
   
@@ -39,7 +38,14 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
   };
 }
 
-export default async function PostPage({ params }: PostPageProps) {
+export default async function PostPage({ 
+  params 
+}: { 
+  params: { 
+    locale: string; 
+    slug: string; 
+  } 
+}) {
   const { locale, slug } = params;
   const post = await getPostBySlug(slug, locale as 'de' | 'en');
   
