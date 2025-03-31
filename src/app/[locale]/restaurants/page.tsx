@@ -2,12 +2,8 @@ import { getPostsByCategorySlug, getPostTranslation } from '@/lib/wordpress-api'
 import { CategoryPage } from '@/components/category-page';
 import { Metadata } from 'next';
 
-export async function generateMetadata({ 
-  params 
-}: { 
-  params: { locale: string } 
-}): Promise<Metadata> {
-  const { locale } = params;
+export async function generateMetadata({ params }: any): Promise<Metadata> {
+  const locale = params.locale;
   
   return {
     title: locale === 'de' ? 'Restaurants' : 'Restaurants',
@@ -24,12 +20,8 @@ export async function generateMetadata({
   };
 }
 
-export default async function RestaurantsPage({ 
-  params 
-}: { 
-  params: { locale: string } 
-}) {
-  const { locale } = params;
+export default async function RestaurantsPage({ params }: any) {
+  const locale = params.locale;
   const posts = await getPostsByCategorySlug('restaurants', locale as 'de' | 'en', 50);
   const postsTranslations = await Promise.all(
     posts.map(async (post) => {

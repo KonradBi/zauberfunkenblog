@@ -2,15 +2,10 @@ import { getPostBySlug, getPostTranslation } from '@/lib/wordpress-api';
 import { Post } from '@/components/post';
 import { Metadata } from 'next';
 
-export async function generateMetadata({ 
-  params 
-}: { 
-  params: { 
-    locale: string; 
-    slug: string; 
-  } 
-}): Promise<Metadata> {
-  const { locale, slug } = params;
+export async function generateMetadata({ params }: any): Promise<Metadata> {
+  const locale = params.locale;
+  const slug = params.slug;
+  
   const post = await getPostBySlug(slug, locale as 'de' | 'en');
   
   if (!post) {
@@ -38,15 +33,10 @@ export async function generateMetadata({
   };
 }
 
-export default async function PostPage({ 
-  params 
-}: { 
-  params: { 
-    locale: string; 
-    slug: string; 
-  } 
-}) {
-  const { locale, slug } = params;
+export default async function PostPage({ params }: any) {
+  const locale = params.locale;
+  const slug = params.slug;
+  
   const post = await getPostBySlug(slug, locale as 'de' | 'en');
   
   if (!post) {
