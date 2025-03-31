@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Locale } from '@/i18n/config';
 import { Button } from '@/components/ui/button';
 // Wir verwenden diese Komponenten aktuell nicht, daher auskommentiert
@@ -9,7 +12,7 @@ import { Button } from '@/components/ui/button';
 //   DropdownMenuTrigger,
 // } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu } from 'lucide-react';
+import { Menu, Globe } from 'lucide-react';
 
 interface NavbarProps {
   dictionary: {
@@ -30,7 +33,16 @@ interface NavbarProps {
 }
 
 export function Navbar({ dictionary, locale }: NavbarProps) {
+  const pathname = usePathname();
   const alternateLocale = locale === 'de' ? 'en' : 'de';
+  
+  // Funktion um den aktuellen Pfad für die alternative Sprache zu generieren
+  const getAlternateLocaleHref = () => {
+    // Entferne das aktuelle Locale vom Pfad
+    const path = pathname.replace(`/${locale}`, '');
+    // Füge das alternate Locale hinzu
+    return `/${alternateLocale}${path}`;
+  };
   
   const navItems = [
     { 
@@ -82,10 +94,11 @@ export function Navbar({ dictionary, locale }: NavbarProps) {
         
         <div className="flex items-center gap-2">
           <Link 
-            href={`/${alternateLocale}${locale === 'de' ? '' : ''}`}
-            className="text-sm font-medium transition-colors hover:text-primary hidden md:block"
+            href={getAlternateLocaleHref()}
+            className="text-sm font-medium transition-colors hover:text-primary hidden md:flex items-center gap-1"
           >
-            {dictionary.common.navigation.switchLanguage}
+            <Globe className="h-4 w-4" />
+            {dictionary.common.languageSwitch}
           </Link>
           
           <Sheet>
@@ -107,10 +120,11 @@ export function Navbar({ dictionary, locale }: NavbarProps) {
                   </Link>
                 ))}
                 <Link 
-                  href={`/${alternateLocale}${locale === 'de' ? '' : ''}`}
-                  className="text-sm font-medium transition-colors hover:text-primary mt-4"
+                  href={getAlternateLocaleHref()}
+                  className="text-sm font-medium transition-colors hover:text-primary mt-4 flex items-center gap-1"
                 >
-                  {dictionary.common.navigation.switchLanguage}
+                  <Globe className="h-4 w-4" />
+                  {dictionary.common.languageSwitch}
                 </Link>
               </nav>
             </SheetContent>
