@@ -1,8 +1,6 @@
-import { Metadata } from 'next';
-import { Locale } from '@/i18n/config';
-import { getDictionary } from '@/i18n/dictionaries';
 import { getPostsByCategorySlug, getPostTranslation } from '@/lib/wordpress-api';
 import { CategoryPage } from '@/components/category-page';
+import { Metadata } from 'next';
 
 interface PageProps {
   params: {
@@ -11,25 +9,21 @@ interface PageProps {
 }
 
 // Generate metadata for this page
-export async function generateMetadata({ params }: { params: { locale: Locale } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: PageProps['params'] }): Promise<Metadata> {
   const { locale } = params;
-  const dictionary = await getDictionary(locale);
-  
-  const title = locale === 'de' ? 'Hotels - Zauberfunken Blog' : 'Hotels - Zauberfunken Blog';
-  const description = locale === 'de' 
-    ? 'Entdecke außergewöhnliche Hotels auf der ganzen Welt' 
-    : 'Discover exceptional hotels around the world';
   
   return {
-    title,
-    description,
+    title: locale === 'de' ? 'Hotels' : 'Hotels',
+    description: locale === 'de' 
+      ? 'Entdecke besondere Hotels und Unterkünfte für deine Reisen.'
+      : 'Discover unique hotels and accommodations for your travels.',
     alternates: {
       canonical: `/${locale}/hotels`,
       languages: {
         'de': '/de/hotels',
-        'en': '/en/hotels',
-      },
-    },
+        'en': '/en/hotels'
+      }
+    }
   };
 }
 

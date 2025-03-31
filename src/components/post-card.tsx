@@ -49,9 +49,10 @@ interface PostCardProps {
   dictionary: {
     readMore: string;
   };
+  translation?: WordPressPost | null;
 }
 
-export function PostCard({ post, locale, dictionary }: PostCardProps) {
+export function PostCard({ post, locale, dictionary, translation }: PostCardProps) {
   return (
     <div className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 h-full flex flex-col transform hover:translate-y-[-5px]">
       <div className="relative aspect-[16/9] overflow-hidden">
@@ -81,13 +82,23 @@ export function PostCard({ post, locale, dictionary }: PostCardProps) {
       </div>
       
       <div className="p-6 flex flex-col flex-grow bg-gradient-to-b from-white to-gray-50">
-        <p className="text-xs text-muted-foreground mb-2">
-          {new Date(post.date).toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          })}
-        </p>
+        <div className="flex justify-between items-start mb-2">
+          <p className="text-xs text-muted-foreground">
+            {new Date(post.date).toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}
+          </p>
+          {translation && (
+            <Link 
+              href={`/${locale === 'de' ? 'en' : 'de'}/post/${translation.slug}`}
+              className="text-xs text-primary hover:text-primary-dark transition-colors"
+            >
+              {locale === 'de' ? 'Read in English' : 'Auf Deutsch lesen'}
+            </Link>
+          )}
+        </div>
         <h3 className="text-xl font-bold mb-3 line-clamp-2 text-primary-900">
           <span dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
         </h3>
