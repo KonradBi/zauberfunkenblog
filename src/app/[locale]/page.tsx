@@ -441,8 +441,9 @@ function HomePageClient({ params, initialPosts, dictionary }: HomePageProps) {
 }
 
 // Server Component Wrapper
-export default async function HomePage({ params }: { params: { locale: Locale } }) {
-  const { locale } = params;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default async function HomePage({ params }: any) {
+  const locale = params.locale as Locale;
   const dictionary = await getDictionary(locale);
   
   // Fetch posts on the server
