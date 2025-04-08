@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { WordPressPost } from '@/lib/wordpress-api';
 import { ParallaxHeader } from './parallax-header';
 import { PostCard } from './post-card';
@@ -28,19 +28,6 @@ export function CategoryPage({
   // Ensure posts is always an array
   const posts = postsInput || [];
   const translations = postsTranslations || [];
-
-  useEffect(() => {
-    console.group(`Category Page Posts (${locale})`);
-    posts.forEach((post, index) => {
-      console.log(`Post ${index + 1}:`, post.title.rendered, `(ID: ${post.id})`);
-      console.log(` - Featured Image URL:`, post._embedded?.['wp:featuredmedia']?.[0]?.source_url || 'None');
-      console.log(` - Translation:`, translations[index] ? translations[index]?.title.rendered : 'None');
-    });
-    if (posts.length === 0) {
-      console.log('No posts found for this category and locale.');
-    }
-    console.groupEnd();
-  }, [posts, translations, locale]);
   
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50">

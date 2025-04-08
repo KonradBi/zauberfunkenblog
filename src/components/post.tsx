@@ -1,10 +1,7 @@
-'use client';
-
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { WordPressPost } from '@/lib/wordpress-api';
-import { useEffect } from 'react';
 
 interface PostProps {
   post: WordPressPost;
@@ -13,14 +10,6 @@ interface PostProps {
 }
 
 export function Post({ post, translation, locale }: PostProps) {
-  useEffect(() => {
-    console.group(`Single Post Page (${locale})`);
-    console.log(`Post:`, post.title.rendered, `(ID: ${post.id})`);
-    console.log(` - Featured Image URL:`, post._embedded?.['wp:featuredmedia']?.[0]?.source_url || 'None');
-    console.log(` - Translation:`, translation ? translation.title.rendered : 'None');
-    console.groupEnd();
-  }, [post, translation, locale]);
-
   const formattedDate = new Date(post.date).toLocaleDateString(
     locale === 'de' ? 'de-DE' : 'en-US',
     {

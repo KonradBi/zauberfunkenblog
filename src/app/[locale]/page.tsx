@@ -1,8 +1,5 @@
-'use client';
-
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect } from 'react';
 import { Locale } from '@/i18n/config';
 import { getDictionary } from '@/i18n/dictionaries';
 import { getPosts, WordPressPost } from '@/lib/wordpress-api';
@@ -51,50 +48,33 @@ const getCategoryIcon = (category: string) => {
 };
 
 interface HomePageProps {
-  params: {
+  params: Promise<{
     locale: Locale;
-  };
-  initialPosts: WordPressPost[];
-  dictionary: any; // Adjust type as needed
+  }>;
 }
 
-// This component will now be used by the server component wrapper
-function HomePageClient({ params, initialPosts, dictionary }: HomePageProps) {
-  const { locale } = params;
-  const posts = initialPosts || [];
-
-  // Logging fetched posts
-  useEffect(() => {
-    console.group(`Homepage Posts (${locale})`);
-    const featuredPost = posts.length > 0 ? posts[0] : null;
-    const regularPosts = posts.length > 1 ? posts.slice(1, 5) : [];
-
-    if (featuredPost) {
-      console.log('Featured Post:', featuredPost.title.rendered, `(ID: ${featuredPost.id})`);
-      console.log(' - Image URL:', featuredPost._embedded?.['wp:featuredmedia']?.[0]?.source_url || 'None');
-    } else {
-      console.log('No featured post.');
-    }
-
-    if (regularPosts.length > 0) {
-      console.log('Regular Posts:');
-      regularPosts.forEach((post, index) => {
-        console.log(` - Post ${index + 1}:`, post.title.rendered, `(ID: ${post.id})`);
-        console.log(`   - Image URL:`, post._embedded?.['wp:featuredmedia']?.[0]?.source_url || 'None');
-      });
-    } else {
-      console.log('No regular posts.');
-    }
-
-    if (posts.length === 0) {
-      console.log('No posts fetched for the homepage.');
-    }
-    console.groupEnd();
-  }, [posts, locale]);
-
-  // Prepare featured post and regular posts for rendering
-  const featuredPost = posts.length > 0 ? posts[0] : null;
-  const regularPosts = posts.length > 1 ? posts.slice(1, 5) : [];
+export default async function HomePage({ params }: HomePageProps) {
+  // Unwrap the params Promise
+  const { locale } = await params;
+  const dictionary = await getDictionary(locale);
+  
+  // Fetch posts
+  console.log(`Fetching posts for homepage (locale: ${locale})`);
+  const allPosts = await getPosts(undefined, 1, 6, locale);
+  const posts = Array.isArray(allPosts) ? allPosts : [];
+  
+  // Prepare featured post and regular posts
+  let featuredPost = null;
+  let regularPosts: WordPressPost[] = [];
+  
+  if (posts.length > 0) {
+    // For simplicity, use the first post as featured
+    featuredPost = posts[0];
+    // Use the rest of the posts for the regular posts section
+    regularPosts = posts.slice(1, 5);
+  }
+  
+  console.log(`Retrieved ${posts.length} posts, Featured: ${featuredPost?.id}, Regular: ${regularPosts.length}`);
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50">
@@ -437,27 +417,5 @@ function HomePageClient({ params, initialPosts, dictionary }: HomePageProps) {
         }}
       />
     </div>
-  );
-}
-
-// Server Component Wrapper
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default async function HomePage({ params }: any) {
-  const locale = params.locale as Locale;
-  const dictionary = await getDictionary(locale);
-  
-  // Fetch posts on the server
-  console.log(`(Server) Fetching posts for homepage (locale: ${locale})`);
-  const allPosts = await getPosts(undefined, 1, 6, locale);
-  const posts = Array.isArray(allPosts) ? allPosts : [];
-  console.log(`(Server) Retrieved ${posts.length} posts`);
-
-  // Pass data to the client component
-  return (
-    <HomePageClient 
-      params={{ locale }}
-      initialPosts={posts}
-      dictionary={dictionary}
-    />
   );
 }
